@@ -6,7 +6,7 @@ func NewHand(card1, card2, card3, card4, card5 card) hand {
   return [5]card{card1, card2, card3, card4, card5}
 }
 
-func (h hand) Pairs() []rank {
+func (h hand) GroupsOf(n int) []rank {
   m := make(map[rank]int)
   for _, card := range h {
     m[card.rank]++
@@ -14,7 +14,7 @@ func (h hand) Pairs() []rank {
 
   s := make([]rank, 0)
   for rank, count := range m {
-    if count == 2 {
+    if count == n {
       s = append(s, rank)
     }
   }

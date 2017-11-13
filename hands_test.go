@@ -18,7 +18,7 @@ var _ = Describe("Hands", func() {
 				NewCard(Three, Club))
 
 			It("Returns the rank of the pair", func() {
-				Expect(hand.Pairs()[0]).To(Equal(Two))
+				Expect(hand.GroupsOf(2)[0]).To(Equal(Two))
 			})
 		})
 
@@ -31,8 +31,38 @@ var _ = Describe("Hands", func() {
 				NewCard(Three, Club))
 
 			It("Returns the rank of both pairs", func() {
-				Expect(hand.Pairs()).To(ContainElement(King))
-				Expect(hand.Pairs()).To(ContainElement(Two))
+				Expect(hand.GroupsOf(2)).To(ContainElement(King))
+				Expect(hand.GroupsOf(2)).To(ContainElement(Two))
+			})
+		})
+
+		Context("When a hand contains three of a kind", func() {
+			hand := NewHand(
+				NewCard(Two, Diamond),
+				NewCard(Two, Club),
+				NewCard(Two, Spade),
+				NewCard(King, Club),
+				NewCard(Three, Club))
+
+			It("Returns the rank", func() {
+				Expect(hand.GroupsOf(3)[0]).To(Equal(Two))
+			})
+
+			It("Does not find pairs", func() {
+				Expect(hand.GroupsOf(2)).To(BeEmpty())
+			})
+		})
+
+		Context("When a hand contains four of a kind", func() {
+			hand := NewHand(
+				NewCard(Two, Diamond),
+				NewCard(Two, Club),
+				NewCard(Two, Spade),
+				NewCard(Two, Heart),
+				NewCard(Three, Club))
+
+			It("Returns the rank", func() {
+				Expect(hand.GroupsOf(4)[0]).To(Equal(Two))
 			})
 		})
 
@@ -45,7 +75,7 @@ var _ = Describe("Hands", func() {
 				NewCard(Three, Club))
 
 			It("Returns an empty slice", func() {
-				Expect(hand.Pairs()).To(BeEmpty())
+				Expect(hand.GroupsOf(2)).To(BeEmpty())
 			})
 		})
 	})
