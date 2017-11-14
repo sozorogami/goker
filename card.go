@@ -36,14 +36,15 @@ type card struct {
 	suit suit
 }
 
-func (c card) Rank() rank {
+func (c *card) Rank() rank {
 	return c.rank
 }
 
-func (c card) Suit() suit {
+func (c *card) Suit() suit {
 	return c.suit
 }
 
-func NewCard(r rank, s suit) card {
-	return card{r, s}
+func NewCard(r rank, s suit) *card {
+	c := card{r, s}
+	return &c
 }

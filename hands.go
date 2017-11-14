@@ -1,14 +1,13 @@
 package goker
 
 import (
-	"fmt"
 	"sort"
 )
 
-type hand [5]card
+type hand [5]*card
 
-func NewHand(card1, card2, card3, card4, card5 card) *hand {
-	h := hand([5]card{card1, card2, card3, card4, card5})
+func NewHand(card1, card2, card3, card4, card5 *card) *hand {
+	h := hand([5]*card{card1, card2, card3, card4, card5})
 	sort.Sort(&h)
 	return &h
 }
