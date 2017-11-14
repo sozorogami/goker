@@ -1,6 +1,8 @@
 package goker_test
 
 import (
+	"sort"
+
 	. "github.com/sozorogami/goker"
 
 	. "github.com/onsi/ginkgo"
@@ -8,6 +10,58 @@ import (
 )
 
 var _ = Describe("Hands", func() {
+	Describe("Creating a new hand", func() {
+		hand := NewHand(
+			NewCard(Two, Diamond),
+			NewCard(Four, Diamond),
+			NewCard(Eight, Diamond),
+			NewCard(Queen, Diamond),
+			NewCard(Three, Diamond))
+
+		It("sorts the cards low to high", func() {
+			sort.Sort(hand)
+			Expect(hand[4]).To(Equal(NewCard(Queen, Diamond)))
+		})
+	})
+
+	Describe("Finding straights", func() {
+		Context("When the hand contains a straight", func() {
+			hand := NewHand(
+				NewCard(Ten, Heart),
+				NewCard(Jack, Spade),
+				NewCard(Queen, Diamond),
+				NewCard(King, Diamond),
+				NewCard(Ace, Club))
+			It("finds the straight", func() {
+				Expect(hand.IsStraight()).To(BeTrue())
+			})
+		})
+
+		Context("When the hand contains an ace-low straight", func() {
+			hand := NewHand(
+				NewCard(Ace, Diamond),
+				NewCard(Two, Club),
+				NewCard(Three, Heart),
+				NewCard(Four, Spade),
+				NewCard(Five, Diamond))
+			It("finds the straight", func() {
+				Expect(hand.IsStraight()).To(BeTrue())
+			})
+		})
+
+		Context("When the hand contains no straight", func() {
+			hand := NewHand(
+				NewCard(Ace, Diamond),
+				NewCard(Two, Club),
+				NewCard(Three, Heart),
+				NewCard(Four, Spade),
+				NewCard(Six, Diamond))
+			It("finds no straight", func() {
+				Expect(hand.IsStraight()).To(BeFalse())
+			})
+		})
+	})
+
 	Describe("Finding flushes", func() {
 		Context("When a hand contains a flush", func() {
 			hand := NewHand(
@@ -17,7 +71,7 @@ var _ = Describe("Hands", func() {
 				NewCard(Queen, Diamond),
 				NewCard(Three, Diamond))
 
-			It("Finds the flush", func() {
+			It("finds the flush", func() {
 				Expect(hand.IsFlush()).To(BeTrue())
 			})
 		})
@@ -30,7 +84,7 @@ var _ = Describe("Hands", func() {
 				NewCard(Queen, Diamond),
 				NewCard(Three, Heart))
 
-			It("Finds the flush", func() {
+			It("finds no flush", func() {
 				Expect(hand.IsFlush()).To(BeFalse())
 			})
 		})
@@ -45,7 +99,7 @@ var _ = Describe("Hands", func() {
 				NewCard(Queen, Club),
 				NewCard(Three, Club))
 
-			It("Returns the rank of the pair", func() {
+			It("returns the rank of the pair", func() {
 				Expect(hand.GroupsOf(2)[0]).To(Equal(Two))
 			})
 		})
@@ -58,7 +112,7 @@ var _ = Describe("Hands", func() {
 				NewCard(King, Club),
 				NewCard(Three, Club))
 
-			It("Returns the rank of both pairs", func() {
+			It("returns the rank of both pairs", func() {
 				Expect(hand.GroupsOf(2)).To(ContainElement(King))
 				Expect(hand.GroupsOf(2)).To(ContainElement(Two))
 			})
@@ -72,11 +126,11 @@ var _ = Describe("Hands", func() {
 				NewCard(King, Club),
 				NewCard(Three, Club))
 
-			It("Returns the rank", func() {
+			It("returns the rank", func() {
 				Expect(hand.GroupsOf(3)[0]).To(Equal(Two))
 			})
 
-			It("Does not find pairs", func() {
+			It("does not find pairs", func() {
 				Expect(hand.GroupsOf(2)).To(BeEmpty())
 			})
 		})
@@ -89,7 +143,7 @@ var _ = Describe("Hands", func() {
 				NewCard(Two, Heart),
 				NewCard(Three, Club))
 
-			It("Returns the rank", func() {
+			It("returns the rank", func() {
 				Expect(hand.GroupsOf(4)[0]).To(Equal(Two))
 			})
 		})
@@ -102,7 +156,7 @@ var _ = Describe("Hands", func() {
 				NewCard(Ace, Club),
 				NewCard(Three, Club))
 
-			It("Returns an empty slice", func() {
+			It("returns an empty slice", func() {
 				Expect(hand.GroupsOf(2)).To(BeEmpty())
 			})
 		})
