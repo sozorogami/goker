@@ -8,6 +8,34 @@ import (
 )
 
 var _ = Describe("Hands", func() {
+	Describe("Finding flushes", func() {
+		Context("When a hand contains a flush", func() {
+			hand := NewHand(
+				NewCard(Two, Diamond),
+				NewCard(Four, Diamond),
+				NewCard(Eight, Diamond),
+				NewCard(Queen, Diamond),
+				NewCard(Three, Diamond))
+
+			It("Finds the flush", func() {
+				Expect(hand.IsFlush()).To(BeTrue())
+			})
+		})
+
+		Context("When a hand does not contain a flush", func() {
+			hand := NewHand(
+				NewCard(Two, Diamond),
+				NewCard(Four, Diamond),
+				NewCard(Eight, Diamond),
+				NewCard(Queen, Diamond),
+				NewCard(Three, Heart))
+
+			It("Finds the flush", func() {
+				Expect(hand.IsFlush()).To(BeFalse())
+			})
+		})
+	})
+
 	Describe("Finding pairs", func() {
 		Context("When a hand contains a pair", func() {
 			hand := NewHand(

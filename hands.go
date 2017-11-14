@@ -6,6 +6,17 @@ func NewHand(card1, card2, card3, card4, card5 card) hand {
   return [5]card{card1, card2, card3, card4, card5}
 }
 
+func (h hand) IsFlush() bool {
+  suit := h[0].Suit()
+  for _, c := range h {
+    if c.Suit() != suit {
+      return false
+    }
+  }
+
+  return true
+}
+
 func (h hand) GroupsOf(n int) []rank {
   m := make(map[rank]int)
   for _, card := range h {
