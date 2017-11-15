@@ -12,7 +12,7 @@ type HandRank interface {
 
 type RoyalStraightFlush struct{}
 
-func NewRoyalStraightFlush(highCard *card) *RoyalStraightFlush {
+func NewRoyalStraightFlush() *RoyalStraightFlush {
 	rsf := RoyalStraightFlush{}
 	return &rsf
 }

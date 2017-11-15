@@ -1,6 +1,7 @@
 package goker
 
 import (
+	"reflect"
 	"sort"
 )
 
@@ -10,6 +11,56 @@ func NewHand(card1, card2, card3, card4, card5 *card) *hand {
 	h := hand([5]*card{card1, card2, card3, card4, card5})
 	sort.Sort(&h)
 	return &h
+}
+
+func (h *hand) Rank() HandRank {
+	if h.IsFlush() && h.IsStraight() {
+		if h.highCard().Rank() == Ace {
+			return NewRoyalStraightFlush()
+		}
+		return NewStraightFlush(h.highCard().Rank())
+	}
+
+	quads := h.GroupsOf(4)
+	if len(quads) != 0 {
+		for _, card := range h {
+			if card.Rank() != quads[0] {
+				return NewFourOfAKind(quads[0], card.Rank())
+			}
+		}
+	}
+
+	trips := h.GroupsOf(3)
+	pairs := h.GroupsOf(2)
+
+	if len(trips) == 1 && len(pairs) == 1 {
+		return NewFullHouse(trips[0], pairs[0])
+	}
+
+	if h.IsFlush() {
+		return NewFlush(h)
+	}
+
+	if h.IsStraight() {
+		return NewStraight(h.highCard().Rank())
+	}
+
+	if len(trips) == 1 {
+		otherCards := h.removeRanks(trips[0])
+		return NewThreeOfAKind(trips[0], otherCards[0].Rank(), otherCards[1].Rank())
+	}
+
+	if len(pairs) == 2 {
+		kicker := h.removeRanks(pairs...)[0]
+		return NewTwoPair(pairs[0], pairs[1], kicker.Rank())
+	}
+
+	if len(pairs) == 1 {
+		kickers := h.removeRanks(pairs[0])
+		return NewPair(pairs[0], kickers[1].Rank(), kickers[0].Rank(), kickers[2].Rank())
+	}
+
+	return NewHighCard(h)
 }
 
 func (h *hand) IsFlush() bool {
@@ -24,7 +75,9 @@ func (h *hand) IsFlush() bool {
 }
 
 func (h *hand) IsStraight() bool {
-  if h.isAceLowStraight() { return true }
+	if h.isAceLowStraight() {
+		return true
+	}
 
 	lastRank := h[0].Rank()
 	for i, card := range h {
@@ -57,6 +110,27 @@ func (h *hand) GroupsOf(n int) []rank {
 	return s
 }
 
+func (h *hand) rankGroups() map[rank][]*card {
+	m := make(map[rank][]*card)
+	for _, card := range h {
+		m[card.Rank()] = append(m[card.Rank()], card)
+	}
+	return m
+}
+
+func (h *hand) removeRanks(ranks ...rank) []*card {
+	groups := h.rankGroups()
+	for _, rank := range ranks {
+		delete(groups, rank)
+	}
+
+	filtered := []*card{}
+	for _, cards := range groups {
+		filtered = append(filtered, cards...)
+	}
+	return filtered
+}
+
 func (h *hand) equalRanks(otherHand *hand) bool {
 	m1, m2 := make(map[rank]int), make(map[rank]int)
 
@@ -65,16 +139,11 @@ func (h *hand) equalRanks(otherHand *hand) bool {
 		m2[otherHand[i].Rank()]++
 	}
 
-	for rank, count := range m1 {
-		if m2[rank] != count {
-			return false
-		}
-	}
-	return true
+	return reflect.DeepEqual(m1, m2)
 }
 
 func (h *hand) isAceLowStraight() bool {
-  aceLowStraight := NewHand(
+	aceLowStraight := NewHand(
 		NewCard(Ace, Club),
 		NewCard(Two, Heart),
 		NewCard(Three, Spade),
@@ -82,6 +151,13 @@ func (h *hand) isAceLowStraight() bool {
 		NewCard(Five, Club))
 
 	return h.equalRanks(aceLowStraight)
+}
+
+func (h *hand) highCard() *card {
+	if h.isAceLowStraight() {
+		return h[len(h)-2]
+	}
+	return h[len(h)-1]
 }
 
 // Sorting
