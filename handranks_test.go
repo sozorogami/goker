@@ -1,13 +1,47 @@
 package goker_test
 
 import (
+	"sort"
+
 	. "github.com/sozorogami/goker"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Hand Ranks", func() {
+var _ = Describe("Comparing hands", func() {
+	Context("when they are of different ranks", func() {
+		allRanks := HandGroup{
+			threeOfAKind,
+			twoPair,
+			pair,
+			highCard,
+			royalStraightFlush,
+			straightFlush,
+			fourOfAKind,
+			fullHouse,
+			flush,
+			straight}
+
+		It("orders them correctly", func() {
+			correctOrder := HandGroup{
+				highCard,
+				pair,
+				twoPair,
+				threeOfAKind,
+				straight,
+				flush,
+				fullHouse,
+				fourOfAKind,
+				straightFlush,
+				royalStraightFlush,
+			}
+
+			sort.Sort(allRanks)
+			Expect(allRanks).To(Equal(correctOrder))
+		})
+	})
+
 	Describe("Royal Straight Flush", func() {
 		It("has a value of 9", func() {
 			rsf := RoyalStraightFlush{}

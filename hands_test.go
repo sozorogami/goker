@@ -73,7 +73,7 @@ var twoPair = NewHand(
 	NewCard(Seven, Club),
 	NewCard(Nine, Club))
 
-var onePair = NewHand(
+var pair = NewHand(
 	NewCard(Four, Club),
 	NewCard(Four, Heart),
 	NewCard(Eight, Spade),
@@ -153,7 +153,7 @@ var _ = Describe("Hands", func() {
 
 		Context("When the hand contains only one set of two cards of the same rank", func() {
 			It("is one pair", func() {
-				Expect(onePair.Rank().Name()).To(Equal("Pair"))
+				Expect(pair.Rank().Name()).To(Equal("Pair"))
 			})
 		})
 
