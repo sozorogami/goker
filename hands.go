@@ -23,11 +23,8 @@ func (h *hand) Rank() HandRank {
 
 	quads := h.GroupsOf(4)
 	if len(quads) != 0 {
-		for _, card := range h {
-			if card.Rank() != quads[0] {
-				return NewFourOfAKind(quads[0], card.Rank())
-			}
-		}
+		kicker := h.removeRanks(quads[0])[0]
+		return NewFourOfAKind(quads[0], kicker.Rank())
 	}
 
 	trips := h.GroupsOf(3)
