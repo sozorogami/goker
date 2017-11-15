@@ -69,26 +69,22 @@ func (fh *FullHouse) Value() []int {
 // Flush
 
 type Flush struct {
-	sortedRanks []rank
+	ranks []rank
 }
 
 func NewFlush(h *hand) *Flush {
-	f := Flush{}
-	// Assumes hand is already sorted by rank!
-	for _, card := range h {
-		f.sortedRanks = append(f.sortedRanks, card.Rank())
+	ranks := make([]rank, 5)
+	for i, card := range h {
+		ranks[i] = card.Rank()
 	}
+	f := Flush{ranks}
 	return &f
 }
 
 func (f *Flush) Value() []int {
 	val := []int{5}
 
-	ranks := make([]int, 5)
-	maxIdx := len(f.sortedRanks) - 1
-	for i := maxIdx; i >= 0; i-- {
-		ranks[i] = int(f.sortedRanks[maxIdx-i])
-	}
+	ranks := rankSliceToSortedIntSlice(f.ranks)
 	return append(val, ranks...)
 }
 
@@ -120,10 +116,7 @@ func NewThreeOfAKind(trip, kicker1, kicker2 rank) *ThreeOfAKind {
 
 func (toak *ThreeOfAKind) Value() []int {
 	val := []int{3, int(toak.trip)}
-
-	intRanks := rankSliceToIntSlice([]rank{toak.kicker1, toak.kicker2})
-	sort.Sort(sort.Reverse(sort.IntSlice(intRanks)))
-
+	intRanks := rankSliceToSortedIntSlice([]rank{toak.kicker1, toak.kicker2})
 	return append(val, intRanks...)
 }
 
@@ -140,8 +133,7 @@ func NewTwoPair(pair1, pair2, kicker rank) *TwoPair {
 
 func (tp *TwoPair) Value() []int {
 	pairs := []rank{tp.pair1, tp.pair2}
-	intRanks := rankSliceToIntSlice(pairs)
-	sort.Sort(sort.Reverse(sort.IntSlice(intRanks)))
+	intRanks := rankSliceToSortedIntSlice(pairs)
 	intRanks = append([]int{2}, intRanks...)
 
 	return append(intRanks, int(tp.kicker))
@@ -159,8 +151,7 @@ func NewPair(pair, kicker1, kicker2, kicker3 rank) *Pair {
 }
 
 func (p *Pair) Value() []int {
-	kickers := rankSliceToIntSlice([]rank{p.kicker1, p.kicker2, p.kicker3})
-	sort.Sort(sort.Reverse(sort.IntSlice(kickers)))
+	kickers := rankSliceToSortedIntSlice([]rank{p.kicker1, p.kicker2, p.kicker3})
 
 	val := []int{1, int(p.pair)}
 	return append(val, kickers...)
@@ -182,8 +173,18 @@ func NewHighCard(h *hand) *HighCard {
 }
 
 func (hc *HighCard) Value() []int {
-	intRanks := rankSliceToIntSlice(hc.ranks)
-	sort.Sort(sort.Reverse(sort.IntSlice(intRanks)))
+	intRanks := rankSliceToSortedIntSlice(hc.ranks)
 
 	return append([]int{0}, intRanks...)
+}
+
+// Helper func to sort ranks high to low for use
+// in a hand's value
+func rankSliceToSortedIntSlice(s []rank) []int {
+	ints := make([]int, len(s))
+	for i := range s {
+		ints[i] = int(s[i])
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(ints)))
+	return ints
 }

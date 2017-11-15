@@ -24,16 +24,7 @@ func (h *hand) IsFlush() bool {
 }
 
 func (h *hand) IsStraight() bool {
-	aceLowStraight := NewHand(
-		NewCard(Ace, Club),
-		NewCard(Two, Heart),
-		NewCard(Three, Spade),
-		NewCard(Four, Diamond),
-		NewCard(Five, Club))
-
-	if h.equalRanks(aceLowStraight) {
-		return true
-	}
+  if h.isAceLowStraight() { return true }
 
 	lastRank := h[0].Rank()
 	for i, card := range h {
@@ -80,6 +71,17 @@ func (h *hand) equalRanks(otherHand *hand) bool {
 		}
 	}
 	return true
+}
+
+func (h *hand) isAceLowStraight() bool {
+  aceLowStraight := NewHand(
+		NewCard(Ace, Club),
+		NewCard(Two, Heart),
+		NewCard(Three, Spade),
+		NewCard(Four, Diamond),
+		NewCard(Five, Club))
+
+	return h.equalRanks(aceLowStraight)
 }
 
 // Sorting
