@@ -26,6 +26,14 @@ const (
 	Ace
 )
 
+func rankSliceToIntSlice(s []rank) []int {
+	ints := make([]int, len(s))
+	for i := range s {
+		ints[i] = int(s[i])
+	}
+	return ints
+}
+
 type PlayingCard interface {
 	Rank() rank
 	Suit() suit
