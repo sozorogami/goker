@@ -6,6 +6,7 @@ import (
 
 type HandRank interface {
 	Value() []int
+	Name() string
 }
 
 // Royal Straight Flush
@@ -19,6 +20,10 @@ func NewRoyalStraightFlush() *RoyalStraightFlush {
 
 func (rsf *RoyalStraightFlush) Value() []int {
 	return []int{9}
+}
+
+func (rsf *RoyalStraightFlush) Name() string {
+	return "RoyalStraightFlush"
 }
 
 // Straight Flush
@@ -36,6 +41,10 @@ func (sf *StraightFlush) Value() []int {
 	return []int{8, int(sf.highCard)}
 }
 
+func (sf *StraightFlush) Name() string {
+	return "StraightFlush"
+}
+
 // Four of a kind
 
 type FourOfAKind struct {
@@ -51,6 +60,10 @@ func (foak *FourOfAKind) Value() []int {
 	return []int{7, int(foak.quad), int(foak.kicker)}
 }
 
+func (foak *FourOfAKind) Name() string {
+	return "FourOfAKind"
+}
+
 // Full House
 
 type FullHouse struct {
@@ -64,6 +77,10 @@ func NewFullHouse(trip, pair rank) *FullHouse {
 
 func (fh *FullHouse) Value() []int {
 	return []int{6, int(fh.trip), int(fh.pair)}
+}
+
+func (fh *FullHouse) Name() string {
+	return "FullHouse"
 }
 
 // Flush
@@ -88,6 +105,10 @@ func (f *Flush) Value() []int {
 	return append(val, ranks...)
 }
 
+func (f *Flush) Name() string {
+	return "Flush"
+}
+
 // Straight
 
 type Straight struct {
@@ -101,6 +122,10 @@ func NewStraight(highCard rank) *Straight {
 
 func (s *Straight) Value() []int {
 	return []int{4, int(s.highCard)}
+}
+
+func (s *Straight) Name() string {
+	return "Straight"
 }
 
 // Three of a Kind
@@ -118,6 +143,10 @@ func (toak *ThreeOfAKind) Value() []int {
 	val := []int{3, int(toak.trip)}
 	intRanks := rankSliceToSortedIntSlice([]rank{toak.kicker1, toak.kicker2})
 	return append(val, intRanks...)
+}
+
+func (toak *ThreeOfAKind) Name() string {
+	return "ThreeOfAKind"
 }
 
 // Two Pair
@@ -139,6 +168,10 @@ func (tp *TwoPair) Value() []int {
 	return append(intRanks, int(tp.kicker))
 }
 
+func (tp *TwoPair) Name() string {
+	return "TwoPair"
+}
+
 // Pair
 
 type Pair struct {
@@ -155,6 +188,10 @@ func (p *Pair) Value() []int {
 
 	val := []int{1, int(p.pair)}
 	return append(val, kickers...)
+}
+
+func (p *Pair) Name() string {
+	return "Pair"
 }
 
 // High Card
@@ -176,6 +213,10 @@ func (hc *HighCard) Value() []int {
 	intRanks := rankSliceToSortedIntSlice(hc.ranks)
 
 	return append([]int{0}, intRanks...)
+}
+
+func (hc *HighCard) Name() string {
+	return "HighCard"
 }
 
 // Helper func to sort ranks high to low for use
