@@ -14,31 +14,31 @@ func NewHand(card1, card2, card3, card4, card5 *card) *hand {
 }
 
 func (h *hand) Rank() HandRank {
-	if h.IsFlush() && h.IsStraight() {
+	if h.isFlush() && h.isStraight() {
 		if h.highCard().Rank() == Ace {
 			return NewRoyalStraightFlush()
 		}
 		return NewStraightFlush(h.highCard().Rank())
 	}
 
-	quads := h.GroupsOf(4)
+	quads := h.groupsOf(4)
 	if len(quads) != 0 {
 		kicker := h.removeRanks(quads[0])[0]
 		return NewFourOfAKind(quads[0], kicker.Rank())
 	}
 
-	trips := h.GroupsOf(3)
-	pairs := h.GroupsOf(2)
+	trips := h.groupsOf(3)
+	pairs := h.groupsOf(2)
 
 	if len(trips) == 1 && len(pairs) == 1 {
 		return NewFullHouse(trips[0], pairs[0])
 	}
 
-	if h.IsFlush() {
+	if h.isFlush() {
 		return NewFlush(h)
 	}
 
-	if h.IsStraight() {
+	if h.isStraight() {
 		return NewStraight(h.highCard().Rank())
 	}
 
@@ -60,7 +60,7 @@ func (h *hand) Rank() HandRank {
 	return NewHighCard(h)
 }
 
-func (h *hand) IsFlush() bool {
+func (h *hand) isFlush() bool {
 	suit := h[0].Suit()
 	for _, c := range h {
 		if c.Suit() != suit {
@@ -71,7 +71,7 @@ func (h *hand) IsFlush() bool {
 	return true
 }
 
-func (h *hand) IsStraight() bool {
+func (h *hand) isStraight() bool {
 	if h.isAceLowStraight() {
 		return true
 	}
@@ -91,7 +91,7 @@ func (h *hand) IsStraight() bool {
 	return true
 }
 
-func (h *hand) GroupsOf(n int) []rank {
+func (h *hand) groupsOf(n int) []rank {
 	m := make(map[rank]int)
 	for _, card := range h {
 		m[card.rank]++
