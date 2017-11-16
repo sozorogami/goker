@@ -91,6 +91,9 @@ func (h *hand) isStraight() bool {
 	return true
 }
 
+// Returns all ranks such that the hand has n cards of that rank
+// Examples: KKQQQ.groupsOf(2) -> [K], KKQQQ.groupsOf(3) -> [Q]
+//           TTAA7.groupsOf(2) -> [T, A]
 func (h *hand) groupsOf(n int) []rank {
 	m := make(map[rank]int)
 	for _, card := range h {
@@ -107,6 +110,7 @@ func (h *hand) groupsOf(n int) []rank {
 	return s
 }
 
+// Returns the cards in a hand grouped by rank
 func (h *hand) rankGroups() map[rank][]*card {
 	m := make(map[rank][]*card)
 	for _, card := range h {
@@ -128,6 +132,7 @@ func (h *hand) removeRanks(ranks ...rank) []*card {
 	return filtered
 }
 
+// True if two hands are equal disregarding suit
 func (h *hand) equalRanks(otherHand *hand) bool {
 	m1, m2 := make(map[rank]int), make(map[rank]int)
 
@@ -150,6 +155,8 @@ func (h *hand) isAceLowStraight() bool {
 	return h.equalRanks(aceLowStraight)
 }
 
+// Highest card, assuming the hand is sorted and taking
+// into account that A can be low card in straights
 func (h *hand) highCard() *card {
 	if h.isAceLowStraight() {
 		return h[len(h)-2]

@@ -212,8 +212,7 @@ func (hc *highCard) Name() string {
 	return "HighCard"
 }
 
-// Helper func to sort ranks high to low for use
-// in a hand's value
+// Helper func to sort ranks high to low for use in a rank's Value()
 func rankSliceToSortedIntSlice(s []rank) []int {
 	ints := make([]int, len(s))
 	for i := range s {
