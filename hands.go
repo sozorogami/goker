@@ -5,12 +5,16 @@ import (
 	"sort"
 )
 
-type hand [5]*card
+type hand [5]Card
 
-func NewHand(card1, card2, card3, card4, card5 *card) *hand {
-	h := hand([5]*card{card1, card2, card3, card4, card5})
+func NewHand(card1, card2, card3, card4, card5 Card) *hand {
+	h := hand([5]Card{card1, card2, card3, card4, card5})
 	sort.Sort(&h)
 	return &h
+}
+
+func NewHandFromSet(cards CardSet) *hand {
+	return NewHand(cards[0], cards[1], cards[2], cards[3], cards[4])
 }
 
 func (h *hand) Rank() HandRank {
@@ -43,8 +47,8 @@ func (h *hand) Rank() HandRank {
 	}
 
 	if len(trips) == 1 {
-		otherCards := h.removeRanks(trips[0])
-		return newThreeOfAKind(trips[0], ranks(otherCards))
+		otherCardSet := h.removeRanks(trips[0])
+		return newThreeOfAKind(trips[0], ranks(otherCardSet))
 	}
 
 	if len(pairs) == 2 {
@@ -97,7 +101,7 @@ func (h *hand) isStraight() bool {
 func (h *hand) groupsOf(n int) []rank {
 	m := make(map[rank]int)
 	for _, card := range h {
-		m[card.rank]++
+		m[card.Rank()]++
 	}
 
 	s := make([]rank, 0)
@@ -111,21 +115,21 @@ func (h *hand) groupsOf(n int) []rank {
 }
 
 // Returns the cards in a hand grouped by rank
-func (h *hand) rankGroups() map[rank][]*card {
-	m := make(map[rank][]*card)
+func (h *hand) rankGroups() map[rank][]Card {
+	m := make(map[rank][]Card)
 	for _, card := range h {
 		m[card.Rank()] = append(m[card.Rank()], card)
 	}
 	return m
 }
 
-func (h *hand) removeRanks(ranks ...rank) []*card {
+func (h *hand) removeRanks(ranks ...rank) []Card {
 	groups := h.rankGroups()
 	for _, rank := range ranks {
 		delete(groups, rank)
 	}
 
-	filtered := []*card{}
+	filtered := []Card{}
 	for _, cards := range groups {
 		filtered = append(filtered, cards...)
 	}
@@ -157,7 +161,7 @@ func (h *hand) isAceLowStraight() bool {
 
 // Highest card, assuming the hand is sorted and taking
 // into account that A can be low card in straights
-func (h *hand) highCard() *card {
+func (h *hand) highCard() Card {
 	if h.isAceLowStraight() {
 		return h[len(h)-2]
 	}
@@ -169,7 +173,7 @@ func (h *hand) ranks() []rank {
 	return ranks(cards)
 }
 
-func ranks(cards []*card) []rank {
+func ranks(cards []Card) []rank {
 	ranks := make([]rank, 5)
 	for i, card := range cards {
 		ranks[i] = card.Rank()

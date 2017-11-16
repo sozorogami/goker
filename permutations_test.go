@@ -11,20 +11,20 @@ var _ = Describe("Combinations", func() {
 	Describe("Combining a root card with a slice of card slices", func() {
 		root := NewCard(Ace, Diamond)
 		Context("when the slice of card slices is empty", func() {
-			s := [][]PlayingCard{}
+			s := []CardSet{}
 			It("returns a slice whose only element is a slice of the root card", func() {
-				Expect(Concat(root, s)).To(Equal([][]PlayingCard{[]PlayingCard{root}}))
+				Expect(Concat(root, s)).To(Equal([]CardSet{CardSet{root}}))
 			})
 		})
 		Context("when the slice of card slices is not empty", func() {
-			s := [][]PlayingCard{
-				[]PlayingCard{NewCard(King, Heart), NewCard(Queen, Heart)},
-				[]PlayingCard{NewCard(King, Spade), NewCard(Queen, Spade)},
+			s := []CardSet{
+				CardSet{NewCard(King, Heart), NewCard(Queen, Heart)},
+				CardSet{NewCard(King, Spade), NewCard(Queen, Spade)},
 			}
 			It("appends the root card to the front of each card slice", func() {
-				expected := [][]PlayingCard{
-					[]PlayingCard{root, NewCard(King, Heart), NewCard(Queen, Heart)},
-					[]PlayingCard{root, NewCard(King, Spade), NewCard(Queen, Spade)},
+				expected := []CardSet{
+					CardSet{root, NewCard(King, Heart), NewCard(Queen, Heart)},
+					CardSet{root, NewCard(King, Spade), NewCard(Queen, Spade)},
 				}
 				Expect(Concat(root, s)).To(Equal(expected))
 			})
@@ -34,22 +34,22 @@ var _ = Describe("Combinations", func() {
 	Describe("Finding permutations of a set of cards", func() {
 		Context("when you try to choose more cards than exist", func() {
 			It("panics", func() {
-				Expect(func() { Combinations(1, []PlayingCard{}) }).To(Panic())
+				Expect(func() { Combinations(1, CardSet{}) }).To(Panic())
 			})
 		})
 		Context("when the set of cards is empty", func() {
 			It("returns a set of the empty set", func() {
-				Expect(Combinations(0, []PlayingCard{})[0]).To(BeEmpty())
+				Expect(Combinations(0, CardSet{})[0]).To(BeEmpty())
 			})
 		})
 		Context("when there is one card in the set", func() {
 			It("returns a set of one permutation", func() {
-				cards := []PlayingCard{NewCard(Ace, Diamond)}
-				Expect(Combinations(1, cards)).To(Equal([][]PlayingCard{cards}))
+				cards := CardSet{NewCard(Ace, Diamond)}
+				Expect(Combinations(1, cards)).To(Equal([]CardSet{cards}))
 			})
 		})
 		Context("when there are two cards in the set", func() {
-			cards := []PlayingCard{NewCard(Ace, Diamond), NewCard(Ace, Spade)}
+			cards := CardSet{NewCard(Ace, Diamond), NewCard(Ace, Spade)}
 			Context("and you choose one", func() {
 				It("returns a set of two permutations", func() {
 					Expect(len(Combinations(1, cards))).To(Equal(2))
@@ -62,7 +62,7 @@ var _ = Describe("Combinations", func() {
 			})
 		})
 		Context("where there are three cards in the set", func() {
-			cards := []PlayingCard{NewCard(Ace, Diamond), NewCard(Ace, Spade), NewCard(Ace, Heart)}
+			cards := CardSet{NewCard(Ace, Diamond), NewCard(Ace, Spade), NewCard(Ace, Heart)}
 			Context("and you choose two", func() {
 				It("returns a set of three permutations", func() {
 					Expect(len(Combinations(2, cards))).To(Equal(3))
@@ -75,7 +75,7 @@ var _ = Describe("Combinations", func() {
 			})
 		})
 		Context("where there are seven cards in the set", func() {
-			cards := []PlayingCard{NewCard(Ace, Diamond),
+			cards := CardSet{NewCard(Ace, Diamond),
 				NewCard(Ace, Spade),
 				NewCard(Ace, Heart),
 				NewCard(Ace, Club),

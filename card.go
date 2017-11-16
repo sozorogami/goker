@@ -26,7 +26,7 @@ const (
 	Ace
 )
 
-type PlayingCard interface {
+type Card interface {
 	Rank() rank
 	Suit() suit
 }
