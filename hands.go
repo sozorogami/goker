@@ -35,7 +35,7 @@ func (h *hand) Rank() HandRank {
 	}
 
 	if h.isFlush() {
-		return NewFlush(h)
+		return NewFlush(h.ranks())
 	}
 
 	if h.isStraight() {
@@ -44,7 +44,7 @@ func (h *hand) Rank() HandRank {
 
 	if len(trips) == 1 {
 		otherCards := h.removeRanks(trips[0])
-		return NewThreeOfAKind(trips[0], otherCards[0].Rank(), otherCards[1].Rank())
+		return NewThreeOfAKind(trips[0], []rank{otherCards[0].Rank(), otherCards[1].Rank()})
 	}
 
 	if len(pairs) == 2 {
@@ -57,7 +57,7 @@ func (h *hand) Rank() HandRank {
 		return NewPair(pairs[0], kickers[1].Rank(), kickers[0].Rank(), kickers[2].Rank())
 	}
 
-	return NewHighCard(h)
+	return NewHighCard(h.ranks())
 }
 
 func (h *hand) isFlush() bool {
@@ -155,6 +155,14 @@ func (h *hand) highCard() *card {
 		return h[len(h)-2]
 	}
 	return h[len(h)-1]
+}
+
+func (h *hand) ranks() []rank {
+	ranks := make([]rank, 5)
+	for i, card := range h {
+		ranks[i] = card.Rank()
+	}
+	return ranks
 }
 
 // Sorting

@@ -89,18 +89,13 @@ type Flush struct {
 	ranks []rank
 }
 
-func NewFlush(h *hand) *Flush {
-	ranks := make([]rank, 5)
-	for i, card := range h {
-		ranks[i] = card.Rank()
-	}
+func NewFlush(ranks []rank) *Flush {
 	f := Flush{ranks}
 	return &f
 }
 
 func (f *Flush) Value() []int {
 	val := []int{5}
-
 	ranks := rankSliceToSortedIntSlice(f.ranks)
 	return append(val, ranks...)
 }
@@ -131,17 +126,18 @@ func (s *Straight) Name() string {
 // Three of a Kind
 
 type ThreeOfAKind struct {
-	trip, kicker1, kicker2 rank
+	trip    rank
+	kickers []rank
 }
 
-func NewThreeOfAKind(trip, kicker1, kicker2 rank) *ThreeOfAKind {
-	toak := ThreeOfAKind{trip, kicker1, kicker2}
+func NewThreeOfAKind(trip rank, kickers []rank) *ThreeOfAKind {
+	toak := ThreeOfAKind{trip, kickers}
 	return &toak
 }
 
 func (toak *ThreeOfAKind) Value() []int {
 	val := []int{3, int(toak.trip)}
-	intRanks := rankSliceToSortedIntSlice([]rank{toak.kicker1, toak.kicker2})
+	intRanks := rankSliceToSortedIntSlice(toak.kickers)
 	return append(val, intRanks...)
 }
 
@@ -200,11 +196,7 @@ type HighCard struct {
 	ranks []rank
 }
 
-func NewHighCard(h *hand) *HighCard {
-	ranks := make([]rank, 5)
-	for i, card := range h {
-		ranks[i] = card.Rank()
-	}
+func NewHighCard(ranks []rank) *HighCard {
 	hc := HighCard{ranks}
 	return &hc
 }
