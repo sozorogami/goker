@@ -9,8 +9,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Comparing hands", func() {
-	Context("when they are of different ranks", func() {
+var _ = Describe("When comparing hands", func() {
+	Context("if they are of different ranks", func() {
 		allRanks := HandGroup{
 			threeOfAKind,
 			twoPair,
@@ -42,132 +42,217 @@ var _ = Describe("Comparing hands", func() {
 		})
 	})
 
-	Describe("Royal Straight Flush", func() {
-		It("has a value of 9", func() {
-			rsf := RoyalStraightFlush{}
-			Expect(rsf.Value()[0]).To(Equal(9))
+	Context("if they are both", func() {
+		Context("straight flushes", func() {
+			otherStraightFlush := NewHand(
+				NewCard(Ace, Club),
+				NewCard(Two, Club),
+				NewCard(Three, Club),
+				NewCard(Four, Club),
+				NewCard(Five, Club))
+			hands := HandGroup{straightFlush, otherStraightFlush}
+			It("ranks the hand with higher high card higher", func() {
+				sort.Sort(hands)
+				Expect(hands[1]).To(Equal(straightFlush))
+			})
 		})
-	})
 
-	Describe("Straight Flush", func() {
-		It("has a value of 8.x, where x is the high card's rank", func() {
-			sf := NewStraightFlush(NewCard(Jack, Spade).Rank())
-			Expect(sf.Value()[0]).To(Equal(8))
-			Expect(sf.Value()[1]).To(Equal(11))
+		Context("four of a kind", func() {
+			Context("of different ranks", func() {
+				otherFourOfAKind := NewHand(
+					NewCard(Eight, Club),
+					NewCard(Eight, Heart),
+					NewCard(Eight, Spade),
+					NewCard(Eight, Diamond),
+					NewCard(Nine, Club))
+
+				hands := HandGroup{fourOfAKind, otherFourOfAKind}
+				It("ranks the hand with the higher quad higher", func() {
+					sort.Sort(hands)
+					Expect(hands[1]).To(Equal(fourOfAKind))
+				})
+			})
+			Context("of the same rank", func() {
+				otherFourOfAKind := NewHand(
+					NewCard(Ten, Club),
+					NewCard(Ten, Heart),
+					NewCard(Ten, Spade),
+					NewCard(Ten, Diamond),
+					NewCard(Eight, Club))
+
+				hands := HandGroup{fourOfAKind, otherFourOfAKind}
+				It("ranks the hand with the higher quad higher", func() {
+					sort.Sort(hands)
+					Expect(hands[1]).To(Equal(fourOfAKind))
+				})
+			})
 		})
-	})
 
-	Describe("Four of a Kind", func() {
-		It("has a value of 7.xy, where x is the rank of the four cards and y is the rank of the kicker", func() {
-			foak := NewFourOfAKind(NewCard(Jack, Spade).Rank(), NewCard(Ace, Heart).Rank())
-			Expect(foak.Value()[0]).To(Equal(7))
-			Expect(foak.Value()[1]).To(Equal(11))
-			Expect(foak.Value()[2]).To(Equal(14))
+		Context("full houses", func() {
+			Context("with different trips", func() {
+				otherFullHouse := NewHand(
+					NewCard(Eight, Club),
+					NewCard(Eight, Heart),
+					NewCard(Eight, Spade),
+					NewCard(Nine, Heart),
+					NewCard(Nine, Spade))
+				hands := HandGroup{fullHouse, otherFullHouse}
+				It("ranks the hand with higher trips higher", func() {
+					sort.Sort(hands)
+					Expect(hands[1]).To(Equal(fullHouse))
+				})
+			})
+			Context("with the same trips", func() {
+				otherFullHouse := NewHand(
+					NewCard(Ten, Club),
+					NewCard(Ten, Heart),
+					NewCard(Ten, Spade),
+					NewCard(Eight, Diamond),
+					NewCard(Eight, Club))
+				hands := HandGroup{fullHouse, otherFullHouse}
+				It("ranks the hand with higher pair higher", func() {
+					sort.Sort(hands)
+					Expect(hands[1]).To(Equal(fullHouse))
+				})
+			})
 		})
-	})
 
-	Describe("Full House", func() {
-		It("has a value of 6.xy, where x is the rank of the three of a kind and y is the rank of the pair", func() {
-			fh := NewFullHouse(NewCard(Two, Spade).Rank(), NewCard(Four, Diamond).Rank())
-			Expect(fh.Value()[0]).To(Equal(6))
-			Expect(fh.Value()[1]).To(Equal(2))
-			Expect(fh.Value()[2]).To(Equal(4))
+		Context("flushes", func() {
+			otherFlush := NewHand(
+				NewCard(Two, Heart),
+				NewCard(Five, Heart),
+				NewCard(Seven, Heart),
+				NewCard(Queen, Heart),
+				NewCard(Jack, Heart))
+			hands := HandGroup{flush, otherFlush}
+			It("ranks the hand with high card higher", func() {
+				sort.Sort(hands)
+				Expect(hands[1]).To(Equal(flush))
+			})
 		})
-	})
 
-	Describe("Flush", func() {
-		It("has a value of 5.abcde, where abcde is the ranks of the cards in decending order", func() {
-			hand := NewHand(
-				NewCard(Two, Spade),
-				NewCard(Four, Spade),
-				NewCard(King, Spade),
-				NewCard(Seven, Spade),
-				NewCard(Nine, Spade))
-
-			f := NewFlush(hand)
-			Expect(f.Value()[0]).To(Equal(5))
-			Expect(f.Value()[1]).To(Equal(13))
-			Expect(f.Value()[2]).To(Equal(9))
-			Expect(f.Value()[3]).To(Equal(7))
-			Expect(f.Value()[4]).To(Equal(4))
-			Expect(f.Value()[5]).To(Equal(2))
+		Context("straights", func() {
+			hands := HandGroup{straight, aceLowStraight}
+			It("ranks the hand with high card higher", func() {
+				sort.Sort(hands)
+				Expect(hands[1]).To(Equal(straight))
+			})
 		})
-	})
 
-	Describe("Straight", func() {
-		It("has a value of 4.x, where x is the high card's rank", func() {
-			hand := NewHand(
-				NewCard(Two, Spade),
-				NewCard(Four, Spade),
-				NewCard(King, Spade),
-				NewCard(Seven, Spade),
-				NewCard(Nine, Spade))
-
-			f := NewFlush(hand)
-			Expect(f.Value()[0]).To(Equal(5))
-			Expect(f.Value()[1]).To(Equal(13))
-			Expect(f.Value()[2]).To(Equal(9))
-			Expect(f.Value()[3]).To(Equal(7))
-			Expect(f.Value()[4]).To(Equal(4))
-			Expect(f.Value()[5]).To(Equal(2))
+		Context("three of a kind", func() {
+			Context("of different rank", func() {
+				otherThreeOfAKind := NewHand(
+					NewCard(Two, Club),
+					NewCard(Two, Heart),
+					NewCard(Two, Spade),
+					NewCard(Seven, Heart),
+					NewCard(Nine, Heart))
+				hands := HandGroup{threeOfAKind, otherThreeOfAKind}
+				It("ranks the hand with higher trips higher", func() {
+					sort.Sort(hands)
+					Expect(hands[1]).To(Equal(threeOfAKind))
+				})
+			})
+			Context("of the same rank", func() {
+				otherThreeOfAKind := NewHand(
+					NewCard(Four, Club),
+					NewCard(Four, Heart),
+					NewCard(Four, Spade),
+					NewCard(Seven, Heart),
+					NewCard(Two, Heart))
+				hands := HandGroup{threeOfAKind, otherThreeOfAKind}
+				It("ranks the hand with higher kickers higher", func() {
+					sort.Sort(hands)
+					Expect(hands[1]).To(Equal(threeOfAKind))
+				})
+			})
 		})
-	})
 
-	Describe("Three of a Kind", func() {
-		It("Has a value of 3.xy, where x and y are kickers", func() {
-			toak := NewThreeOfAKind(NewCard(Ace, Diamond).Rank(),
-				NewCard(Three, Spade).Rank(),
-				NewCard(Two, Heart).Rank())
-			Expect(toak.Value()[0]).To(Equal(3))
-			Expect(toak.Value()[1]).To(Equal(14))
-			Expect(toak.Value()[2]).To(Equal(3))
-			Expect(toak.Value()[3]).To(Equal(2))
+		Context("two pair", func() {
+			Context("with different high pair", func() {
+				otherTwoPair := NewHand(
+					NewCard(Four, Club),
+					NewCard(Four, Heart),
+					NewCard(Six, Spade),
+					NewCard(Six, Club),
+					NewCard(Nine, Club))
+				hands := HandGroup{twoPair, otherTwoPair}
+				It("ranks the hand with higher high pair higher", func() {
+					sort.Sort(hands)
+					Expect(hands[1]).To(Equal(twoPair))
+				})
+			})
+			Context("with the same high pair", func() {
+				Context("but different low pair", func() {
+					otherTwoPair := NewHand(
+						NewCard(Three, Club),
+						NewCard(Three, Heart),
+						NewCard(Seven, Spade),
+						NewCard(Seven, Club),
+						NewCard(Nine, Club))
+					hands := HandGroup{twoPair, otherTwoPair}
+					It("ranks the hand with higher low pair higher", func() {
+						sort.Sort(hands)
+						Expect(hands[1]).To(Equal(twoPair))
+					})
+				})
+				Context("and the same low pair", func() {
+					otherTwoPair := NewHand(
+						NewCard(Four, Club),
+						NewCard(Four, Heart),
+						NewCard(Seven, Spade),
+						NewCard(Seven, Diamond),
+						NewCard(Three, Club))
+					hands := HandGroup{twoPair, otherTwoPair}
+					It("ranks the hand with higher low pair higher", func() {
+						sort.Sort(hands)
+						Expect(hands[1]).To(Equal(twoPair))
+					})
+				})
+			})
 		})
-	})
 
-	Describe("Two Pair", func() {
-		It("Has a value of 2.xyz, where x is the rank of the high pair, y the low pair, and z the kicker", func() {
-			tp := NewTwoPair(NewCard(Ace, Diamond).Rank(),
-				NewCard(Three, Spade).Rank(),
-				NewCard(Two, Heart).Rank())
-			Expect(tp.Value()[0]).To(Equal(2))
-			Expect(tp.Value()[1]).To(Equal(14))
-			Expect(tp.Value()[2]).To(Equal(3))
-			Expect(tp.Value()[3]).To(Equal(2))
+		Context("pairs", func() {
+			Context("of different ranks", func() {
+				otherPair := NewHand(
+					NewCard(Three, Club),
+					NewCard(Three, Heart),
+					NewCard(Eight, Spade),
+					NewCard(Seven, Club),
+					NewCard(Nine, Club))
+				hands := HandGroup{pair, otherPair}
+				It("ranks the pair with higher rank higher", func() {
+					sort.Sort(hands)
+					Expect(hands[1]).To(Equal(pair))
+				})
+			})
+			Context("of the same rank", func() {
+				otherPair := NewHand(
+					NewCard(Four, Club),
+					NewCard(Four, Heart),
+					NewCard(Two, Spade),
+					NewCard(Seven, Club),
+					NewCard(Nine, Club))
+				hands := HandGroup{pair, otherPair}
+				It("ranks the hand with higher kickers higher", func() {
+					sort.Sort(hands)
+					Expect(hands[1]).To(Equal(pair))
+				})
+			})
 		})
-	})
 
-	Describe("One Pair", func() {
-		It("Has a value of 1.abcd, where a is the rank of the pair, and bcd the kickers", func() {
-			p := NewPair(NewCard(Ace, Diamond).Rank(),
-				NewCard(Three, Spade).Rank(),
-				NewCard(Four, Spade).Rank(),
-				NewCard(Two, Heart).Rank())
-			Expect(p.Value()[0]).To(Equal(1))
-			Expect(p.Value()[1]).To(Equal(14))
-			Expect(p.Value()[2]).To(Equal(4))
-			Expect(p.Value()[3]).To(Equal(3))
-			Expect(p.Value()[4]).To(Equal(2))
-		})
-	})
-
-	Describe("High Card", func() {
-		It("Has a value of 0.abcde, where abcde is the rank of cards high to low", func() {
-			hand := NewHand(
-				NewCard(Two, Spade),
+		Context("high card", func() {
+			otherHighCard := NewHand(
+				NewCard(Two, Club),
 				NewCard(Four, Heart),
-				NewCard(King, Spade),
-				NewCard(Seven, Club),
+				NewCard(Eight, Spade),
+				NewCard(Six, Club),
 				NewCard(Nine, Spade))
-
-			hc := NewHighCard(hand)
-
-			Expect(hc.Value()[0]).To(Equal(0))
-			Expect(hc.Value()[1]).To(Equal(13))
-			Expect(hc.Value()[2]).To(Equal(9))
-			Expect(hc.Value()[3]).To(Equal(7))
-			Expect(hc.Value()[4]).To(Equal(4))
-			Expect(hc.Value()[5]).To(Equal(2))
+			hands := HandGroup{highCard, otherHighCard}
+			It("ranks the hand with higest high card higher", func() {
+				sort.Sort(hands)
+				Expect(hands[1]).To(Equal(highCard))
+			})
 		})
 	})
 })
