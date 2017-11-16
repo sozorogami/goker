@@ -11,152 +11,152 @@ type HandRank interface {
 
 // Royal Straight Flush
 
-type RoyalStraightFlush struct{}
+type royalStraightFlush struct{}
 
-func NewRoyalStraightFlush() *RoyalStraightFlush {
-	rsf := RoyalStraightFlush{}
+func newRoyalStraightFlush() *royalStraightFlush {
+	rsf := royalStraightFlush{}
 	return &rsf
 }
 
-func (rsf *RoyalStraightFlush) Value() []int {
+func (rsf *royalStraightFlush) Value() []int {
 	return []int{9}
 }
 
-func (rsf *RoyalStraightFlush) Name() string {
+func (rsf *royalStraightFlush) Name() string {
 	return "RoyalStraightFlush"
 }
 
 // Straight Flush
 
-type StraightFlush struct {
+type straightFlush struct {
 	highCard rank
 }
 
-func NewStraightFlush(highCard rank) *StraightFlush {
-	sf := StraightFlush{highCard}
+func newStraightFlush(highCard rank) *straightFlush {
+	sf := straightFlush{highCard}
 	return &sf
 }
 
-func (sf *StraightFlush) Value() []int {
+func (sf *straightFlush) Value() []int {
 	return []int{8, int(sf.highCard)}
 }
 
-func (sf *StraightFlush) Name() string {
+func (sf *straightFlush) Name() string {
 	return "StraightFlush"
 }
 
 // Four of a kind
 
-type FourOfAKind struct {
+type fourOfAKind struct {
 	quad, kicker rank
 }
 
-func NewFourOfAKind(quadCard, kicker rank) *FourOfAKind {
-	foak := FourOfAKind{quadCard, kicker}
+func newFourOfAKind(quadCard, kicker rank) *fourOfAKind {
+	foak := fourOfAKind{quadCard, kicker}
 	return &foak
 }
 
-func (foak *FourOfAKind) Value() []int {
+func (foak *fourOfAKind) Value() []int {
 	return []int{7, int(foak.quad), int(foak.kicker)}
 }
 
-func (foak *FourOfAKind) Name() string {
+func (foak *fourOfAKind) Name() string {
 	return "FourOfAKind"
 }
 
 // Full House
 
-type FullHouse struct {
+type fullHouse struct {
 	trip, pair rank
 }
 
-func NewFullHouse(trip, pair rank) *FullHouse {
-	fh := FullHouse{trip, pair}
+func newFullHouse(trip, pair rank) *fullHouse {
+	fh := fullHouse{trip, pair}
 	return &fh
 }
 
-func (fh *FullHouse) Value() []int {
+func (fh *fullHouse) Value() []int {
 	return []int{6, int(fh.trip), int(fh.pair)}
 }
 
-func (fh *FullHouse) Name() string {
+func (fh *fullHouse) Name() string {
 	return "FullHouse"
 }
 
 // Flush
 
-type Flush struct {
+type flush struct {
 	ranks []rank
 }
 
-func NewFlush(ranks []rank) *Flush {
-	f := Flush{ranks}
+func newFlush(ranks []rank) *flush {
+	f := flush{ranks}
 	return &f
 }
 
-func (f *Flush) Value() []int {
+func (f *flush) Value() []int {
 	val := []int{5}
 	ranks := rankSliceToSortedIntSlice(f.ranks)
 	return append(val, ranks...)
 }
 
-func (f *Flush) Name() string {
+func (f *flush) Name() string {
 	return "Flush"
 }
 
 // Straight
 
-type Straight struct {
+type straight struct {
 	highCard rank
 }
 
-func NewStraight(highCard rank) *Straight {
-	s := Straight{highCard}
+func newStraight(highCard rank) *straight {
+	s := straight{highCard}
 	return &s
 }
 
-func (s *Straight) Value() []int {
+func (s *straight) Value() []int {
 	return []int{4, int(s.highCard)}
 }
 
-func (s *Straight) Name() string {
+func (s *straight) Name() string {
 	return "Straight"
 }
 
 // Three of a Kind
 
-type ThreeOfAKind struct {
+type threeOfAKind struct {
 	trip    rank
 	kickers []rank
 }
 
-func NewThreeOfAKind(trip rank, kickers []rank) *ThreeOfAKind {
-	toak := ThreeOfAKind{trip, kickers}
+func newThreeOfAKind(trip rank, kickers []rank) *threeOfAKind {
+	toak := threeOfAKind{trip, kickers}
 	return &toak
 }
 
-func (toak *ThreeOfAKind) Value() []int {
+func (toak *threeOfAKind) Value() []int {
 	val := []int{3, int(toak.trip)}
 	intRanks := rankSliceToSortedIntSlice(toak.kickers)
 	return append(val, intRanks...)
 }
 
-func (toak *ThreeOfAKind) Name() string {
+func (toak *threeOfAKind) Name() string {
 	return "ThreeOfAKind"
 }
 
 // Two Pair
 
-type TwoPair struct {
+type twoPair struct {
 	pair1, pair2, kicker rank
 }
 
-func NewTwoPair(pair1, pair2, kicker rank) *TwoPair {
-	tp := TwoPair{pair1, pair2, kicker}
+func newTwoPair(pair1, pair2, kicker rank) *twoPair {
+	tp := twoPair{pair1, pair2, kicker}
 	return &tp
 }
 
-func (tp *TwoPair) Value() []int {
+func (tp *twoPair) Value() []int {
 	pairs := []rank{tp.pair1, tp.pair2}
 	intRanks := rankSliceToSortedIntSlice(pairs)
 	intRanks = append([]int{2}, intRanks...)
@@ -164,50 +164,51 @@ func (tp *TwoPair) Value() []int {
 	return append(intRanks, int(tp.kicker))
 }
 
-func (tp *TwoPair) Name() string {
+func (tp *twoPair) Name() string {
 	return "TwoPair"
 }
 
 // Pair
 
-type Pair struct {
-	pair, kicker1, kicker2, kicker3 rank
+type onePair struct {
+	pair    rank
+	kickers []rank
 }
 
-func NewPair(pair, kicker1, kicker2, kicker3 rank) *Pair {
-	p := Pair{pair, kicker1, kicker2, kicker3}
+func newPair(pair rank, kickers []rank) *onePair {
+	p := onePair{pair, kickers}
 	return &p
 }
 
-func (p *Pair) Value() []int {
-	kickers := rankSliceToSortedIntSlice([]rank{p.kicker1, p.kicker2, p.kicker3})
+func (p *onePair) Value() []int {
+	kickers := rankSliceToSortedIntSlice(p.kickers)
 
 	val := []int{1, int(p.pair)}
 	return append(val, kickers...)
 }
 
-func (p *Pair) Name() string {
+func (p *onePair) Name() string {
 	return "Pair"
 }
 
 // High Card
 
-type HighCard struct {
+type highCard struct {
 	ranks []rank
 }
 
-func NewHighCard(ranks []rank) *HighCard {
-	hc := HighCard{ranks}
+func newHighCard(ranks []rank) *highCard {
+	hc := highCard{ranks}
 	return &hc
 }
 
-func (hc *HighCard) Value() []int {
+func (hc *highCard) Value() []int {
 	intRanks := rankSliceToSortedIntSlice(hc.ranks)
 
 	return append([]int{0}, intRanks...)
 }
 
-func (hc *HighCard) Name() string {
+func (hc *highCard) Name() string {
 	return "HighCard"
 }
 
