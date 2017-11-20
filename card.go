@@ -3,28 +3,46 @@ package goker
 import "fmt"
 
 type suit int8
-type rank int8
 
 const (
+	// Spade - Constant representing the suit ♠
 	Spade suit = iota
+	// Heart - Constant representing the suit ♥
 	Heart
+	// Diamond - Constant representing the suit ♦
 	Diamond
+	// Club - Constant representing the suit ♣
 	Club
 )
 
+type rank int8
+
 const (
+	// Two - Constant representing the rank 2
 	Two rank = iota + 2
+	// Three - Constant representing the rank 3
 	Three
+	// Four - Constant representing the rank 4
 	Four
+	// Five - Constant representing the rank 5
 	Five
+	// Six - Constant representing the rank 6
 	Six
+	// Seven - Constant representing the rank 7
 	Seven
+	// Eight - Constant representing the rank 8
 	Eight
+	// Nine - Constant representing the rank 9
 	Nine
+	// Ten - Constant representing the rank 10
 	Ten
+	// Jack - Constant representing the rank Jack
 	Jack
+	// Queen - Constant representing the rank Queen
 	Queen
+	// King - Constant representing the rank King
 	King
+	// Ace - Constant representing the rank Ace
 	Ace
 )
 
