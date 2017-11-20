@@ -7,7 +7,7 @@ func (c CardSet) PossibleHands() HandGroup {
 		return HandGroup{}
 	}
 
-	combos := Combinations(5, c)
+	combos := combinations(5, c)
 	hands := HandGroup{}
 	for _, combo := range combos {
 		hands = append(hands, NewHandFromSet(combo))

@@ -2,7 +2,7 @@ package goker
 
 import "fmt"
 
-func Combinations(choose int, cards CardSet) []CardSet {
+func combinations(choose int, cards CardSet) []CardSet {
 	if choose > len(cards) {
 		msg := fmt.Sprintf("Can't choose %d from %d cards", choose, len(cards))
 		panic(msg)
@@ -17,14 +17,14 @@ func Combinations(choose int, cards CardSet) []CardSet {
 
 	s := make([]CardSet, 0)
 	for i, root := range roots {
-		c := Concat(root, Combinations(choose-1, cards[i+1:]))
+		c := concat(root, combinations(choose-1, cards[i+1:]))
 		s = append(s, c...)
 	}
 
 	return s
 }
 
-func Concat(root Card, slice []CardSet) []CardSet {
+func concat(root Card, slice []CardSet) []CardSet {
 	if len(slice) == 0 {
 		return []CardSet{CardSet{root}}
 	}
