@@ -1,8 +1,6 @@
 package goker_test
 
 import (
-	"sort"
-
 	. "github.com/sozorogami/goker"
 
 	. "github.com/onsi/ginkgo"
@@ -51,7 +49,6 @@ var straight = NewHand(
 	NewCard(Five, Club),
 	NewCard(Six, Club))
 
-// TODO: Test by value
 var aceLowStraight = NewHand(
 	NewCard(Two, Diamond),
 	NewCard(Three, Club),
@@ -97,7 +94,6 @@ var _ = Describe("Hands", func() {
 			NewCard(Three, Diamond))
 
 		It("sorts the cards low to high", func() {
-			sort.Sort(hand)
 			Expect(hand[4]).To(Equal(NewCard(Queen, Diamond)))
 		})
 	})
