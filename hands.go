@@ -130,6 +130,9 @@ func (h *Hand) rankGroups() map[rank][]Card {
 	return m
 }
 
+// Removes all specified ranks from the hand and returns
+// the remaining cards
+// e.g. [K♠︎, K♦︎, A♦︎, 9♠︎, 9♦︎].removeRanks(A, 9) -> [K♠︎, K♦︎]
 func (h *Hand) removeRanks(ranks ...rank) []Card {
 	groups := h.rankGroups()
 	for _, rank := range ranks {
