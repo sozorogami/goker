@@ -20,7 +20,7 @@ func (c CardSet) PossibleHands() HandGroup {
 
 // BestPossibleHand - Returns the best possible 5 card
 // hand that can be created with the cards in this set
-func (c CardSet) BestPossibleHand() *hand {
+func (c CardSet) BestPossibleHand() *Hand {
 	ph := c.PossibleHands()
 	sort.Sort(ph)
 	return ph[len(ph)-1]

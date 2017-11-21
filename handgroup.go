@@ -1,6 +1,6 @@
 package goker
 
-type HandGroup []*hand
+type HandGroup []*Hand
 
 func (hg HandGroup) Len() int {
 	return len(hg)

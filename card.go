@@ -46,6 +46,7 @@ const (
 	Ace
 )
 
+// Card - Represents a playing card, with a suit and rank
 type Card interface {
 	Rank() rank
 	Suit() suit
@@ -97,7 +98,8 @@ func (c *card) String() string {
 	return rankStr + suitStr
 }
 
-func NewCard(r rank, s suit) *card {
+// NewCard - Constructs a new card with the given suit and rank
+func NewCard(r rank, s suit) Card {
 	c := card{r, s}
 	return &c
 }

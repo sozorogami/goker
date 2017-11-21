@@ -5,19 +5,26 @@ import (
 	"sort"
 )
 
-type hand [5]Card
+// Hand - Represents a 5 card poker hand
+type Hand [5]Card
 
-func NewHand(card1, card2, card3, card4, card5 Card) *hand {
-	h := hand([5]Card{card1, card2, card3, card4, card5})
+// NewHand - Returns a pointer to a new hand consisting of
+// the required cards
+func NewHand(card1, card2, card3, card4, card5 Card) *Hand {
+	h := Hand([5]Card{card1, card2, card3, card4, card5})
 	sort.Sort(&h)
 	return &h
 }
 
-func NewHandFromSet(cards CardSet) *hand {
+// NewHandFromSet - Returns a pointer to a new hand consisting of
+// the first five cards in the card set provided
+func NewHandFromSet(cards CardSet) *Hand {
 	return NewHand(cards[0], cards[1], cards[2], cards[3], cards[4])
 }
 
-func (h *hand) Rank() HandRank {
+// Rank - The relative value of the hand according to the rules
+// of poker
+func (h *Hand) Rank() HandRank {
 	if h.isFlush() && h.isStraight() {
 		if h.highCard().Rank() == Ace {
 			return newRoyalStraightFlush()
@@ -64,7 +71,7 @@ func (h *hand) Rank() HandRank {
 	return newHighCard(h.ranks())
 }
 
-func (h *hand) isFlush() bool {
+func (h *Hand) isFlush() bool {
 	suit := h[0].Suit()
 	for _, c := range h {
 		if c.Suit() != suit {
@@ -75,7 +82,7 @@ func (h *hand) isFlush() bool {
 	return true
 }
 
-func (h *hand) isStraight() bool {
+func (h *Hand) isStraight() bool {
 	if h.isAceLowStraight() {
 		return true
 	}
@@ -98,7 +105,7 @@ func (h *hand) isStraight() bool {
 // Returns all ranks such that the hand has n cards of that rank
 // Examples: KKQQQ.groupsOf(2) -> [K], KKQQQ.groupsOf(3) -> [Q]
 //           TTAA7.groupsOf(2) -> [T, A]
-func (h *hand) groupsOf(n int) []rank {
+func (h *Hand) groupsOf(n int) []rank {
 	m := make(map[rank]int)
 	for _, card := range h {
 		m[card.Rank()]++
@@ -115,7 +122,7 @@ func (h *hand) groupsOf(n int) []rank {
 }
 
 // Returns the cards in a hand grouped by rank
-func (h *hand) rankGroups() map[rank][]Card {
+func (h *Hand) rankGroups() map[rank][]Card {
 	m := make(map[rank][]Card)
 	for _, card := range h {
 		m[card.Rank()] = append(m[card.Rank()], card)
@@ -123,7 +130,7 @@ func (h *hand) rankGroups() map[rank][]Card {
 	return m
 }
 
-func (h *hand) removeRanks(ranks ...rank) []Card {
+func (h *Hand) removeRanks(ranks ...rank) []Card {
 	groups := h.rankGroups()
 	for _, rank := range ranks {
 		delete(groups, rank)
@@ -137,7 +144,7 @@ func (h *hand) removeRanks(ranks ...rank) []Card {
 }
 
 // True if two hands are equal disregarding suit
-func (h *hand) equalRanks(otherHand *hand) bool {
+func (h *Hand) equalRanks(otherHand *Hand) bool {
 	m1, m2 := make(map[rank]int), make(map[rank]int)
 
 	for i := range h {
@@ -148,7 +155,7 @@ func (h *hand) equalRanks(otherHand *hand) bool {
 	return reflect.DeepEqual(m1, m2)
 }
 
-func (h *hand) isAceLowStraight() bool {
+func (h *Hand) isAceLowStraight() bool {
 	aceLowStraight := NewHand(
 		NewCard(Ace, Club),
 		NewCard(Two, Heart),
@@ -161,14 +168,14 @@ func (h *hand) isAceLowStraight() bool {
 
 // Highest card, assuming the hand is sorted and taking
 // into account that A can be low card in straights
-func (h *hand) highCard() Card {
+func (h *Hand) highCard() Card {
 	if h.isAceLowStraight() {
 		return h[len(h)-2]
 	}
 	return h[len(h)-1]
 }
 
-func (h *hand) ranks() []rank {
+func (h *Hand) ranks() []rank {
 	cards := h[0:]
 	return ranks(cards)
 }
@@ -183,14 +190,14 @@ func ranks(cards []Card) []rank {
 
 // Sorting
 
-func (h *hand) Len() int {
+func (h *Hand) Len() int {
 	return len(h)
 }
 
-func (h *hand) Swap(i, j int) {
+func (h *Hand) Swap(i, j int) {
 	h[i], h[j] = h[j], h[i]
 }
 
-func (h *hand) Less(i, j int) bool {
+func (h *Hand) Less(i, j int) bool {
 	return h[i].Rank() < h[j].Rank()
 }
