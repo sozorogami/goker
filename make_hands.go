@@ -2,6 +2,8 @@ package goker
 
 import "sort"
 
+// PossibleHands - Returns all possible 5 card hands that
+// can be created with the cards in this set
 func (c CardSet) PossibleHands() HandGroup {
 	if len(c) < 5 {
 		return HandGroup{}
@@ -16,6 +18,8 @@ func (c CardSet) PossibleHands() HandGroup {
 	return hands
 }
 
+// BestPossibleHand - Returns the best possible 5 card
+// hand that can be created with the cards in this set
 func (c CardSet) BestPossibleHand() *hand {
 	ph := c.PossibleHands()
 	sort.Sort(ph)
