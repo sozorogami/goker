@@ -41,7 +41,8 @@ func (d *Deck) Shuffle() {
 
 // Draw removes and returns the top n cards from the deck
 func (d *Deck) Draw(n int) CardSet {
-	cards := d.cards[0:n]
-	d.cards = d.cards[n:]
+	splitIndex := d.Len() - n
+	cards := d.cards[splitIndex:]
+	d.cards = d.cards[0:splitIndex]
 	return cards
 }
