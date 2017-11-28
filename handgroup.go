@@ -1,5 +1,6 @@
 package goker
 
+// HandGroup represents a set of poker hands which can be sorted by value
 type HandGroup []*Hand
 
 func (hg HandGroup) Len() int {
