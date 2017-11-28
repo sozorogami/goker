@@ -102,9 +102,10 @@ func (h *Hand) isStraight() bool {
 	return true
 }
 
-// Returns all ranks such that the hand has n cards of that rank
-// Examples: KKQQQ.groupsOf(2) -> [K], KKQQQ.groupsOf(3) -> [Q]
-//           TTAA7.groupsOf(2) -> [T, A]
+// Returns all ranks such that the hand has n cards of that rank.
+// The order of the ranks in the slice returned is undefined.
+// Examples: QQQKK.groupsOf(2) -> [K], KKQQQ.groupsOf(3) -> [Q]
+//           7TTAA.groupsOf(2) -> [T, A]
 func (h *Hand) groupsOf(n int) []rank {
 	m := make(map[rank]int)
 	for _, card := range h {
@@ -130,9 +131,9 @@ func (h *Hand) rankGroups() map[rank][]Card {
 	return m
 }
 
-// Removes all specified ranks from the hand and returns
-// the remaining cards
-// e.g. [K♠︎, K♦︎, A♦︎, 9♠︎, 9♦︎].removeRanks(A, 9) -> [K♠︎, K♦︎]
+// Returns a slice of the cards that would remain if all the specified
+// ranks were removed
+// e.g. [9♠︎, 9♦︎, K♠︎, K♦︎, A♦︎].removeRanks(A, 9) -> [K♠︎, K♦︎]
 func (h *Hand) removeRanks(ranks ...rank) []Card {
 	groups := h.rankGroups()
 	for _, rank := range ranks {
