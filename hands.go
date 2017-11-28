@@ -6,12 +6,15 @@ import (
 )
 
 // Hand represents a 5-card poker hand
-type Hand [5]Card
+type Hand struct {
+	Cards [5]Card
+	owner *Player
+}
 
 // NewHand returns a pointer to a new hand consisting of
 // the provided cards
 func NewHand(card1, card2, card3, card4, card5 *Card) *Hand {
-	h := Hand([5]Card{*card1, *card2, *card3, *card4, *card5})
+	h := Hand{[5]Card{*card1, *card2, *card3, *card4, *card5}, nil}
 	sort.Sort(&h)
 	return &h
 }
@@ -72,8 +75,8 @@ func (h Hand) Rank() HandRank {
 }
 
 func (h Hand) isFlush() bool {
-	suit := h[0].Suit
-	for _, c := range h {
+	suit := h.Cards[0].Suit
+	for _, c := range h.Cards {
 		if c.Suit != suit {
 			return false
 		}
@@ -87,8 +90,8 @@ func (h Hand) isStraight() bool {
 		return true
 	}
 
-	lastRank := h[0].Rank
-	for i, card := range h {
+	lastRank := h.Cards[0].Rank
+	for i, card := range h.Cards {
 		if i == 0 {
 			continue
 		}
@@ -108,7 +111,7 @@ func (h Hand) isStraight() bool {
 //           7TTAA.groupsOf(2) -> [T, A]
 func (h Hand) groupsOf(n int) []rank {
 	m := make(map[rank]int)
-	for _, card := range h {
+	for _, card := range h.Cards {
 		m[card.Rank]++
 	}
 
@@ -125,7 +128,7 @@ func (h Hand) groupsOf(n int) []rank {
 // Returns the cards in a hand grouped by rank
 func (h Hand) rankGroups() map[rank][]Card {
 	m := make(map[rank][]Card)
-	for _, card := range h {
+	for _, card := range h.Cards {
 		m[card.Rank] = append(m[card.Rank], card)
 	}
 	return m
@@ -151,9 +154,9 @@ func (h Hand) removeRanks(ranks ...rank) []Card {
 func (h Hand) equalRanks(otherHand *Hand) bool {
 	m1, m2 := make(map[rank]int), make(map[rank]int)
 
-	for i := range h {
-		m1[h[i].Rank]++
-		m2[otherHand[i].Rank]++
+	for i := range h.Cards {
+		m1[h.Cards[i].Rank]++
+		m2[otherHand.Cards[i].Rank]++
 	}
 
 	return reflect.DeepEqual(m1, m2)
@@ -173,14 +176,15 @@ func (h Hand) isAceLowStraight() bool {
 // Highest card, assuming the hand is sorted and taking
 // into account that A can be low card in straights
 func (h Hand) highCard() Card {
+	cards := h.Cards
 	if h.isAceLowStraight() {
-		return h[len(h)-2]
+		return cards[len(cards)-2]
 	}
-	return h[len(h)-1]
+	return cards[len(cards)-1]
 }
 
 func (h Hand) ranks() []rank {
-	cards := h[0:]
+	cards := h.Cards[0:]
 	return ranks(cards)
 }
 
@@ -195,13 +199,13 @@ func ranks(cards []Card) []rank {
 // Sorting
 
 func (h Hand) Len() int {
-	return len(h)
+	return len(h.Cards)
 }
 
 func (h *Hand) Swap(i, j int) {
-	h[i], h[j] = h[j], h[i]
+	h.Cards[i], h.Cards[j] = h.Cards[j], h.Cards[i]
 }
 
 func (h Hand) Less(i, j int) bool {
-	return h[i].Rank < h[j].Rank
+	return h.Cards[i].Rank < h.Cards[j].Rank
 }

@@ -94,7 +94,7 @@ var _ = Describe("Hands", func() {
 			NewCard(Three, Diamond))
 
 		It("sorts the cards low to high", func() {
-			Expect(&hand[4]).To(Equal(NewCard(Queen, Diamond)))
+			Expect(&hand.Cards[4]).To(Equal(NewCard(Queen, Diamond)))
 		})
 	})
 

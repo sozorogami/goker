@@ -9,6 +9,26 @@ type HandRank interface {
 	Name() string
 }
 
+func (h *Hand) IsLessThan(h2 *Hand) bool {
+	for idx := range h.Rank().Value() {
+		// Compare the value of each rank determiner, with decreasing
+		// significance, until one is higher
+		leftVal := h.Rank().Value()[idx]
+		rightVal := h2.Rank().Value()[idx]
+		if leftVal < rightVal {
+			return true
+		}
+		if leftVal > rightVal {
+			return false
+		}
+	}
+	return false
+}
+
+func (h *Hand) IsEqual(h2 *Hand) bool {
+	return !h.IsLessThan(h2) && !h2.IsLessThan(h)
+}
+
 // Royal Straight Flush
 
 type royalStraightFlush struct{}
