@@ -5,25 +5,25 @@ import (
 	"sort"
 )
 
-// Hand - Represents a 5 card poker hand
+// Hand represents a 5-card poker hand
 type Hand [5]Card
 
-// NewHand - Returns a pointer to a new hand consisting of
-// the required cards
+// NewHand returns a pointer to a new hand consisting of
+// the provided cards
 func NewHand(card1, card2, card3, card4, card5 Card) *Hand {
 	h := Hand([5]Card{card1, card2, card3, card4, card5})
 	sort.Sort(&h)
 	return &h
 }
 
-// NewHandFromSet - Returns a pointer to a new hand consisting of
+// NewHandFromSet returns a pointer to a new hand consisting of
 // the first five cards in the card set provided
 func NewHandFromSet(cards CardSet) *Hand {
 	return NewHand(cards[0], cards[1], cards[2], cards[3], cards[4])
 }
 
-// Rank - The relative value of the hand according to the rules
-// of poker
+// Rank returns a struct representing the value of the hand according to
+// the rules of poker
 func (h *Hand) Rank() HandRank {
 	if h.isFlush() && h.isStraight() {
 		if h.highCard().Rank() == Ace {

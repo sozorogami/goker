@@ -4,15 +4,15 @@ import (
 	"math/rand"
 )
 
-// CardSet - A slice of an arbitrary number of cards
+// CardSet is a slice of an arbitrary number of cards
 type CardSet []Card
 
-// Deck - Represents a standard 52 card deck
+// Deck represents a standard 52 card deck
 type Deck struct {
 	cards CardSet
 }
 
-// NewDeck - Constructs a CardSet representing a standard
+// NewDeck constructs a CardSet representing a standard
 // 52 card deck
 func NewDeck() *Deck {
 	cards := CardSet{}
@@ -26,12 +26,12 @@ func NewDeck() *Deck {
 	return &d
 }
 
-// Len - The number of cards remaining in the deck
+// Len returns the number of cards remaining in the deck
 func (d *Deck) Len() int {
 	return len(d.cards)
 }
 
-// Shuffle - Reorders the cards in the deck randomly, in place
+// Shuffle reorders the cards in the deck randomly, in place
 func (d *Deck) Shuffle() {
 	for i := len(d.cards) - 1; i > 0; i-- {
 		j := rand.Intn(i + 1)
@@ -39,7 +39,7 @@ func (d *Deck) Shuffle() {
 	}
 }
 
-// Draw - Removes and returns the top n cards from the deck
+// Draw removes and returns the top n cards from the deck
 func (d *Deck) Draw(n int) CardSet {
 	cards := d.cards[0:n]
 	d.cards = d.cards[n:]

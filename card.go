@@ -5,48 +5,48 @@ import "fmt"
 type suit int8
 
 const (
-	// Spade - Constant representing the suit ♠
+	// Spade represents the suit ♠
 	Spade suit = iota
-	// Heart - Constant representing the suit ♥
+	// Heart represents the suit ♥
 	Heart
-	// Diamond - Constant representing the suit ♦
+	// Diamond represents the suit ♦
 	Diamond
-	// Club - Constant representing the suit ♣
+	// Club represents the suit ♣
 	Club
 )
 
 type rank int8
 
 const (
-	// Two - Constant representing the rank 2
+	// Two represents the rank 2
 	Two rank = iota + 2
-	// Three - Constant representing the rank 3
+	// Three represents the rank 3
 	Three
-	// Four - Constant representing the rank 4
+	// Four represents the rank 4
 	Four
-	// Five - Constant representing the rank 5
+	// Five represents the rank 5
 	Five
-	// Six - Constant representing the rank 6
+	// Six represents the rank 6
 	Six
-	// Seven - Constant representing the rank 7
+	// Seven represents the rank 7
 	Seven
-	// Eight - Constant representing the rank 8
+	// Eight represents the rank 8
 	Eight
-	// Nine - Constant representing the rank 9
+	// Nine represents the rank 9
 	Nine
-	// Ten - Constant representing the rank 10
+	// Ten represents the rank 10
 	Ten
-	// Jack - Constant representing the rank Jack
+	// Jack represents the rank Jack
 	Jack
-	// Queen - Constant representing the rank Queen
+	// Queen represents the rank Queen
 	Queen
-	// King - Constant representing the rank King
+	// King represents the rank King
 	King
-	// Ace - Constant representing the rank Ace
+	// Ace represents the rank Ace
 	Ace
 )
 
-// Card - Represents a playing card, with a suit and rank
+// Card represents a playing card, with a suit and rank
 type Card interface {
 	Rank() rank
 	Suit() suit
@@ -98,7 +98,7 @@ func (c *card) String() string {
 	return rankStr + suitStr
 }
 
-// NewCard - Constructs a new card with the given suit and rank
+// NewCard constructs a new card of the given suit and rank
 func NewCard(r rank, s suit) Card {
 	c := card{r, s}
 	return &c
