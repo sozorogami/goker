@@ -27,7 +27,7 @@ func NewDeck() *Deck {
 }
 
 // Len returns the number of cards remaining in the deck
-func (d *Deck) Len() int {
+func (d Deck) Len() int {
 	return len(d.cards)
 }
 

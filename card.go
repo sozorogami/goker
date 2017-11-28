@@ -58,15 +58,15 @@ type card struct {
 	suit suit
 }
 
-func (c *card) Rank() rank {
+func (c card) Rank() rank {
 	return c.rank
 }
 
-func (c *card) Suit() suit {
+func (c card) Suit() suit {
 	return c.suit
 }
 
-func (c *card) String() string {
+func (c card) String() string {
 	var suitStr string
 	switch c.Suit() {
 	case Spade:

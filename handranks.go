@@ -18,11 +18,11 @@ func newRoyalStraightFlush() *royalStraightFlush {
 	return &rsf
 }
 
-func (rsf *royalStraightFlush) Value() []int {
+func (rsf royalStraightFlush) Value() []int {
 	return []int{9}
 }
 
-func (rsf *royalStraightFlush) Name() string {
+func (rsf royalStraightFlush) Name() string {
 	return "RoyalStraightFlush"
 }
 
@@ -37,11 +37,11 @@ func newStraightFlush(highCard rank) *straightFlush {
 	return &sf
 }
 
-func (sf *straightFlush) Value() []int {
+func (sf straightFlush) Value() []int {
 	return []int{8, int(sf.highCard)}
 }
 
-func (sf *straightFlush) Name() string {
+func (sf straightFlush) Name() string {
 	return "StraightFlush"
 }
 
@@ -56,11 +56,11 @@ func newFourOfAKind(quadCard, kicker rank) *fourOfAKind {
 	return &foak
 }
 
-func (foak *fourOfAKind) Value() []int {
+func (foak fourOfAKind) Value() []int {
 	return []int{7, int(foak.quad), int(foak.kicker)}
 }
 
-func (foak *fourOfAKind) Name() string {
+func (foak fourOfAKind) Name() string {
 	return "FourOfAKind"
 }
 
@@ -75,11 +75,11 @@ func newFullHouse(trip, pair rank) *fullHouse {
 	return &fh
 }
 
-func (fh *fullHouse) Value() []int {
+func (fh fullHouse) Value() []int {
 	return []int{6, int(fh.trip), int(fh.pair)}
 }
 
-func (fh *fullHouse) Name() string {
+func (fh fullHouse) Name() string {
 	return "FullHouse"
 }
 
@@ -94,13 +94,13 @@ func newFlush(ranks []rank) *flush {
 	return &f
 }
 
-func (f *flush) Value() []int {
+func (f flush) Value() []int {
 	val := []int{5}
 	ranks := rankSliceToSortedIntSlice(f.ranks)
 	return append(val, ranks...)
 }
 
-func (f *flush) Name() string {
+func (f flush) Name() string {
 	return "Flush"
 }
 
@@ -115,11 +115,11 @@ func newStraight(highCard rank) *straight {
 	return &s
 }
 
-func (s *straight) Value() []int {
+func (s straight) Value() []int {
 	return []int{4, int(s.highCard)}
 }
 
-func (s *straight) Name() string {
+func (s straight) Name() string {
 	return "Straight"
 }
 
@@ -135,13 +135,13 @@ func newThreeOfAKind(trip rank, kickers []rank) *threeOfAKind {
 	return &toak
 }
 
-func (toak *threeOfAKind) Value() []int {
+func (toak threeOfAKind) Value() []int {
 	val := []int{3, int(toak.trip)}
 	intRanks := rankSliceToSortedIntSlice(toak.kickers)
 	return append(val, intRanks...)
 }
 
-func (toak *threeOfAKind) Name() string {
+func (toak threeOfAKind) Name() string {
 	return "ThreeOfAKind"
 }
 
@@ -156,7 +156,7 @@ func newTwoPair(pair1, pair2, kicker rank) *twoPair {
 	return &tp
 }
 
-func (tp *twoPair) Value() []int {
+func (tp twoPair) Value() []int {
 	pairs := []rank{tp.pair1, tp.pair2}
 	intRanks := rankSliceToSortedIntSlice(pairs)
 	intRanks = append([]int{2}, intRanks...)
@@ -164,7 +164,7 @@ func (tp *twoPair) Value() []int {
 	return append(intRanks, int(tp.kicker))
 }
 
-func (tp *twoPair) Name() string {
+func (tp twoPair) Name() string {
 	return "TwoPair"
 }
 
@@ -180,14 +180,14 @@ func newPair(pair rank, kickers []rank) *onePair {
 	return &p
 }
 
-func (p *onePair) Value() []int {
+func (p onePair) Value() []int {
 	kickers := rankSliceToSortedIntSlice(p.kickers)
 
 	val := []int{1, int(p.pair)}
 	return append(val, kickers...)
 }
 
-func (p *onePair) Name() string {
+func (p onePair) Name() string {
 	return "Pair"
 }
 
@@ -202,13 +202,13 @@ func newHighCard(ranks []rank) *highCard {
 	return &hc
 }
 
-func (hc *highCard) Value() []int {
+func (hc highCard) Value() []int {
 	intRanks := rankSliceToSortedIntSlice(hc.ranks)
 
 	return append([]int{0}, intRanks...)
 }
 
-func (hc *highCard) Name() string {
+func (hc highCard) Name() string {
 	return "HighCard"
 }
 
