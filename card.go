@@ -79,31 +79,17 @@ func (r rank) String() string {
 }
 
 // Card represents a playing card, with a suit and rank
-type Card interface {
-	Rank() rank
-	Suit() suit
-	String() string
+type Card struct {
+	Rank rank
+	Suit suit
 }
 
-type card struct {
-	rank rank
-	suit suit
-}
-
-func (c card) Rank() rank {
-	return c.rank
-}
-
-func (c card) Suit() suit {
-	return c.suit
-}
-
-func (c card) String() string {
-	return c.rank.String() + c.suit.String()
+func (c Card) String() string {
+	return c.Rank.String() + c.Suit.String()
 }
 
 // NewCard constructs a new card of the given suit and rank
-func NewCard(r rank, s suit) Card {
-	c := card{r, s}
+func NewCard(r rank, s suit) *Card {
+	c := Card{r, s}
 	return &c
 }

@@ -5,7 +5,7 @@ import (
 )
 
 // CardSet is a slice of an arbitrary number of cards
-type CardSet []Card
+type CardSet []*Card
 
 // Deck represents a standard 52 card deck
 type Deck struct {

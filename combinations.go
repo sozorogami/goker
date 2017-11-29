@@ -24,7 +24,7 @@ func combinations(choose int, cards CardSet) []CardSet {
 	return s
 }
 
-func concat(root Card, slice []CardSet) []CardSet {
+func concat(root *Card, slice []CardSet) []CardSet {
 	if len(slice) == 0 {
 		return []CardSet{CardSet{root}}
 	}
