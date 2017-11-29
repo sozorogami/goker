@@ -15,6 +15,21 @@ const (
 	Club
 )
 
+func (s suit) String() string {
+	switch s {
+	case Spade:
+		return "♠"
+	case Heart:
+		return "♥"
+	case Diamond:
+		return "♦"
+	case Club:
+		return "♣"
+	default:
+		return "?"
+	}
+}
+
 type rank int8
 
 const (
@@ -46,6 +61,23 @@ const (
 	Ace
 )
 
+func (r rank) String() string {
+	switch r {
+	case Ace:
+		return "A"
+	case King:
+		return "K"
+	case Queen:
+		return "Q"
+	case Jack:
+		return "J"
+	case Ten:
+		return "T"
+	default:
+		return fmt.Sprintf("%d", int(r))
+	}
+}
+
 // Card represents a playing card, with a suit and rank
 type Card interface {
 	Rank() rank
@@ -67,35 +99,7 @@ func (c card) Suit() suit {
 }
 
 func (c card) String() string {
-	var suitStr string
-	switch c.Suit() {
-	case Spade:
-		suitStr = "♠"
-	case Heart:
-		suitStr = "♥"
-	case Diamond:
-		suitStr = "♦"
-	case Club:
-		suitStr = "♣"
-	}
-
-	var rankStr string
-	switch c.Rank() {
-	case Ace:
-		rankStr = "A"
-	case King:
-		rankStr = "K"
-	case Queen:
-		rankStr = "Q"
-	case Jack:
-		rankStr = "J"
-	case Ten:
-		rankStr = "T"
-	default:
-		rankStr = fmt.Sprintf("%d", int(c.Rank()))
-	}
-
-	return rankStr + suitStr
+	return c.rank.String() + c.suit.String()
 }
 
 // NewCard constructs a new card of the given suit and rank
