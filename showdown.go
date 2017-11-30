@@ -27,12 +27,16 @@ func NewPlayer(name string) *Player {
 }
 
 type Pot struct {
-	Value   int
-	Players []*Player
+	Value            int
+	PotentialWinners map[*Player]struct{}
 }
 
-func NewPot(value int, players []*Player) *Pot {
-	pot := Pot{value, players}
+func NewPot(value int, potentialWinners []*Player) *Pot {
+	potentialWinnersSet := make(map[*Player]struct{})
+	for _, player := range potentialWinners {
+		potentialWinnersSet[player] = struct{}{}
+	}
+	pot := Pot{value, potentialWinnersSet}
 	return &pot
 }
 
