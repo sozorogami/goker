@@ -27,8 +27,8 @@ func NewPlayer(name string) *Player {
 }
 
 type Pot struct {
-	value   int
-	players []*Player
+	Value   int
+	Players []*Player
 }
 
 func NewPot(value int, players []*Player) *Pot {
@@ -36,11 +36,11 @@ func NewPot(value int, players []*Player) *Pot {
 	return &pot
 }
 
-func Showdown(players []*Player, pots []*Pot) (map[*Player][]*Pot, int) {
+func Showdown(players []*Player, pots []*Pot) (map[*Player]int, []*Pot) {
 	bigWinner := Winners(players)[0][0]
-	payouts := make(map[*Player][]*Pot)
-	payouts[bigWinner] = []*Pot{pots[0]}
-	return payouts, 0
+	payouts := make(map[*Player]int)
+	payouts[bigWinner] = pots[0].Value
+	return payouts, []*Pot{}
 }
 
 func Winners(players []*Player) [][]*Player {
