@@ -21,6 +21,10 @@ func (p *Player) MuckHand() {
 	p.hand = nil
 }
 
+func (p Player) String() string {
+	return p.name
+}
+
 func NewPlayer(name string) *Player {
 	p := Player{name, nil}
 	return &p
@@ -41,10 +45,48 @@ func NewPot(value int, potentialWinners []*Player) *Pot {
 }
 
 func Showdown(players []*Player, pots []*Pot) (map[*Player]int, []*Pot) {
-	bigWinner := Winners(players)[0][0]
+	winnerTiers := Winners(players)
 	payouts := make(map[*Player]int)
-	payouts[bigWinner] = pots[0].Value
-	return payouts, []*Pot{}
+	oddChips := []*Pot{}
+
+	for _, tier := range winnerTiers {
+		for i, pot := range pots {
+			if pot == nil {
+				continue
+			}
+
+			numOfWinners := 0
+			potWinners := []*Player{}
+			for _, winner := range tier {
+				_, exists := pot.PotentialWinners[winner]
+				if exists {
+					numOfWinners++
+					potWinners = append(potWinners, winner)
+				}
+			}
+
+			// If none of the winners on this tier can win the pot
+			// (because they're only entitled to a side pot, for example)
+			// it passes to a lower tier without being divided up
+			if numOfWinners == 0 {
+				continue
+			}
+
+			for _, winner := range potWinners {
+				payouts[winner] += pot.Value / numOfWinners
+			}
+
+			if pot.Value%numOfWinners != 0 {
+				oddChipPot := NewPot(pot.Value%numOfWinners, potWinners)
+				oddChips = append(oddChips, oddChipPot)
+			}
+
+			// Nil out this pot so nobody can win it again!
+			pots[i] = nil
+		}
+	}
+
+	return payouts, oddChips
 }
 
 func Winners(players []*Player) [][]*Player {
