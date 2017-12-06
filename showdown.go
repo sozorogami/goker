@@ -5,7 +5,7 @@ import (
 )
 
 type Player struct {
-	name string
+	Name string
 	hand *Hand
 }
 
@@ -22,7 +22,7 @@ func (p *Player) MuckHand() {
 }
 
 func (p Player) String() string {
-	return p.name
+	return p.Name
 }
 
 func NewPlayer(name string) *Player {
