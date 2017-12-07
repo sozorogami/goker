@@ -4,53 +4,6 @@ import (
 	"sort"
 )
 
-// Player represents a poker game participant
-type Player struct {
-	Name string
-	hand *Hand
-}
-
-// GetHand assigns ownership of the provided hand to the receiver
-func (p *Player) GetHand(h *Hand) {
-	p.hand = h
-	h.owner = p
-}
-
-// MuckHand unassigns ownership of the player's hand
-func (p *Player) MuckHand() {
-	if p.hand != nil {
-		p.hand.owner = nil
-	}
-	p.hand = nil
-}
-
-func (p Player) String() string {
-	return p.Name
-}
-
-// NewPlayer constructs a player with a name and no hand
-func NewPlayer(name string) *Player {
-	p := Player{name, nil}
-	return &p
-}
-
-// Pot represents an amount of chips with metadata about which players are
-// allowed to win them
-type Pot struct {
-	Value            int
-	PotentialWinners map[*Player]struct{}
-}
-
-// NewPot constructs a pot with a given amount of chips and possible winners
-func NewPot(value int, potentialWinners []*Player) *Pot {
-	potentialWinnersSet := make(map[*Player]struct{})
-	for _, player := range potentialWinners {
-		potentialWinnersSet[player] = struct{}{}
-	}
-	pot := Pot{value, potentialWinnersSet}
-	return &pot
-}
-
 // Showdown takes a slice of at least two players, all of whom must have a hand,
 // and a slice of all pots in play. It returns the payout in chips for each
 // player when they reveal their hands and face off. It also returns a slice
