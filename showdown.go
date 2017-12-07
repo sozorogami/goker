@@ -100,6 +100,13 @@ func Showdown(players []*Player, pots []*Pot) (map[*Player]int, []*Pot) {
 		}
 	}
 
+	// Sanity check
+	for i := range pots {
+		if pots[i] != nil {
+			panic("All pots should be paid out at end of showdown!")
+		}
+	}
+
 	return payouts, oddChips
 }
 
