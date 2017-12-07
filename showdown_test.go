@@ -26,6 +26,22 @@ var _ = Describe("Showdown", func() {
 		mac.MuckHand()
 	})
 	Describe("finding the winners", func() {
+		Context("when there are not enough players", func() {
+			It("panics", func() {
+				charlie.GetHand(royalStraightFlush)
+				Expect(func() {
+					WinnerTiers([]*Player{charlie})
+				}).To(Panic())
+			})
+		})
+		Context("when there is a player without a hand", func() {
+			It("panics", func() {
+				dennis.GetHand(royalStraightFlush)
+				Expect(func() {
+					WinnerTiers([]*Player{dennis, charlie})
+				}).To(Panic())
+			})
+		})
 		Context("when a player has a winning hand", func() {
 			winner := royalStraightFlush
 			loser := highCard
@@ -34,7 +50,7 @@ var _ = Describe("Showdown", func() {
 				dennis.GetHand(loser)
 			})
 			It("finds one winner on two tiers", func() {
-				Expect(Winners([]*Player{charlie, dennis})).To(Equal([][]*Player{[]*Player{charlie}, []*Player{dennis}}))
+				Expect(WinnerTiers([]*Player{charlie, dennis})).To(Equal([][]*Player{[]*Player{charlie}, []*Player{dennis}}))
 			})
 		})
 		Context("when there is a tie", func() {
@@ -45,11 +61,12 @@ var _ = Describe("Showdown", func() {
 				dennis.GetHand(otherWinner)
 			})
 			It("finds two winners on one tier", func() {
-				result := Winners([]*Player{charlie, dennis})[0]
+				result := WinnerTiers([]*Player{charlie, dennis})[0]
 				Expect(result).To(ConsistOf(charlie, dennis))
 			})
 		})
 	})
+
 	Describe("dividing pots", func() {
 		Context("", func() {})
 	})
