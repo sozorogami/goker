@@ -70,15 +70,14 @@ func Showdown(players []*Player, pots []*Pot) (map[*Player]int, []*Pot) {
 				continue
 			}
 
-			numOfWinners := 0
 			potWinners := []*Player{}
 			for _, winner := range tier {
 				_, exists := pot.PotentialWinners[winner]
 				if exists {
-					numOfWinners++
 					potWinners = append(potWinners, winner)
 				}
 			}
+			numOfWinners := len(potWinners)
 
 			// If none of the winners on this tier can win the pot
 			// (because they're not entitled to a side pot, for example)
