@@ -8,6 +8,7 @@ type Player struct {
 	Chips      int
 	Status     PlayerStatus
 	NextPlayer *Player
+	CurrentBet int
 }
 
 // GetHand assigns ownership of the provided hand to the receiver
@@ -28,10 +29,29 @@ func (p Player) String() string {
 	return p.Name
 }
 
+func (p *Player) Bet(value int) int {
+	if p.Chips <= 0 {
+		panic("Player with no chips can't bet!")
+	}
+
+	var chipsBet int
+	if p.Chips <= value {
+		p.Status = AllIn
+		chipsBet = p.Chips
+		p.Chips = 0
+	} else {
+		chipsBet = value
+		p.Chips -= value
+	}
+
+	p.CurrentBet = chipsBet
+	return chipsBet
+}
+
 // NewPlayer constructs a player with a name. All other values must be
 // initialized separately
 func NewPlayer(name string) *Player {
-	p := Player{name, nil, nil, 0, active, nil}
+	p := Player{name, nil, nil, 0, Active, nil, 0}
 	return &p
 }
 
@@ -51,8 +71,8 @@ func SeatPlayers(players []*Player) {
 type PlayerStatus int8
 
 const (
-	active PlayerStatus = iota
-	allIn
-	folded
-	eliminated
+	Active PlayerStatus = iota
+	AllIn
+	Folded
+	Eliminated
 )

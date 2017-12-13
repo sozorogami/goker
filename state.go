@@ -6,15 +6,39 @@ type GameState struct {
 	Pots           []*Pot
 	*Deck
 	Board      *CardSet
-	CurrentBet int
+	BetToMatch int
 	TurnNumber int
 	BettingRound
+	GameRules
 }
 
-func NewGame(players []*Player) *GameState {
-	dealer := players[0] // TODO: Randomize
-	action := dealer.NextPlayer
+type GameRules struct {
+	SmallBlind int
+	BigBlind   int
+}
 
+func NewGame(players []*Player, rules GameRules) *GameState {
+	if len(players) < 2 {
+		panic("Need at least two players for poker!")
+	}
+
+	dealer := players[0] // TODO: Randomize
+
+	var action *Player
+	if len(players) == 2 {
+		dealer.Bet(rules.SmallBlind)
+		dealer.NextPlayer.Bet(rules.BigBlind)
+		action = dealer
+	} else {
+		small := dealer.NextPlayer
+		small.Bet(rules.SmallBlind)
+		big := small.NextPlayer
+		big.Bet(rules.BigBlind)
+		action = big.NextPlayer
+	}
+
+	// TODO: What if big blind can't match and goes all-in?
+	currentBet := rules.BigBlind
 	deck := NewDeck()
 
 	for _, player := range players {
@@ -22,7 +46,7 @@ func NewGame(players []*Player) *GameState {
 	}
 
 	board := CardSet{}
-	gs := GameState{dealer, action, players, []*Pot{}, deck, &board, 0, 0, Preflop}
+	gs := GameState{dealer, action, players, []*Pot{}, deck, &board, currentBet, 0, Preflop, rules}
 	return &gs
 }
 
