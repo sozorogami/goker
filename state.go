@@ -1,5 +1,7 @@
 package goker
 
+import "errors"
+
 type GameState struct {
 	Dealer, Action *Player
 	Players        []*Player
@@ -60,9 +62,9 @@ const (
 )
 
 type Action struct {
-	player     *Player
-	actionType ActionType
-	value      int
+	Player     *Player
+	ActionType ActionType
+	Value      int
 }
 
 type ActionType int8
@@ -76,5 +78,8 @@ const (
 )
 
 func Transition(state GameState, action Action) (GameState, error) {
+	if action.Player != state.Action {
+		return state, errors.New("It's not your turn")
+	}
 	return GameState{}, nil
 }

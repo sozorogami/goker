@@ -8,12 +8,22 @@ import (
 )
 
 var _ = Describe("Gameplay", func() {
+	var state *GameState
+	var rules GameRules
+	var charlie, dee, mac, dennis *Player
+	var players []*Player
+	BeforeEach(func() {
+		charlie = NewPlayer("Charlie")
+		dee = NewPlayer("Dee")
+		mac = NewPlayer("Mac")
+		dennis = NewPlayer("Dennis")
+		players = []*Player{charlie, dee, mac, dennis}
+		initializePlayers(players)
+	})
 	Describe("inital game state", func() {
-		var state *GameState
-		var rules GameRules
 		BeforeEach(func() {
 			rules = GameRules{SmallBlind: 25, BigBlind: 50}
-			state = initialState(rules)
+			state = NewGame(players, rules)
 		})
 		It("has players", func() {
 			Expect(state.Players).NotTo(BeEmpty())
@@ -43,22 +53,34 @@ var _ = Describe("Gameplay", func() {
 			Expect(state.BettingRound).To(Equal(Preflop))
 		})
 	})
+
+	Describe("taking turns", func() {
+		BeforeEach(func() {
+			rules = GameRules{SmallBlind: 25, BigBlind: 50}
+			state = NewGame(players, rules)
+		})
+
+		Context("when someone besides action tries to take their turn", func() {
+			var action Action
+			var newState GameState
+			var err error
+			BeforeEach(func() {
+				action = Action{Player: dee, ActionType: Raise, Value: 1000}
+				newState, err = Transition(*state, action)
+			})
+			It("rejects them", func() {
+				Expect(err).NotTo(BeNil())
+			})
+			It("does not change the game state", func() {
+				Expect(newState).To(Equal(*state))
+			})
+		})
+	})
 })
 
-func initialState(rules GameRules) *GameState {
-	players := initializePlayers()
-	return NewGame(players, rules)
-}
-
-func initializePlayers() []*Player {
-	charlie := NewPlayer("Charlie")
-	dee := NewPlayer("Dee")
-	mac := NewPlayer("Mac")
-	dennis := NewPlayer("Dennis")
-	players := []*Player{charlie, dee, mac, dennis}
+func initializePlayers(players []*Player) {
 	SeatPlayers(players)
 	for _, player := range players {
 		player.Chips = 1000
 	}
-	return players
 }
