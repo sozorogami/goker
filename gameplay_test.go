@@ -55,15 +55,15 @@ var _ = Describe("Gameplay", func() {
 	})
 
 	Describe("taking turns", func() {
+		var action Action
+		var newState GameState
+		var err error
+
 		BeforeEach(func() {
 			rules = GameRules{SmallBlind: 25, BigBlind: 50}
 			state = NewGame(players, rules)
 		})
-
 		Context("when someone besides action tries to take their turn", func() {
-			var action Action
-			var newState GameState
-			var err error
 			BeforeEach(func() {
 				action = Action{Player: dee, ActionType: Raise, Value: 1000}
 				newState, err = Transition(*state, action)
@@ -73,6 +73,51 @@ var _ = Describe("Gameplay", func() {
 			})
 			It("does not change the game state", func() {
 				Expect(newState).To(Equal(*state))
+			})
+		})
+
+		Context("when the person who is action takes their turn", func() {
+			Context("when they call", func() {
+				Context("and they have enough chips to cover the call", func() {
+					BeforeEach(func() {
+						action = Action{Player: dennis, ActionType: Call, Value: 0}
+						newState, err = Transition(*state, action)
+					})
+					It("does not produce an error", func() {
+						Expect(err).To(BeNil())
+					})
+					It("passes action to the next person", func() {
+						Expect(newState.Action).To(Equal(charlie))
+					})
+					It("decreases the calling player's chips by the amount of the called bet", func() {
+						Expect(dennis.Chips).To(Equal(950))
+					})
+					It("sets the calling player's current bet to the amount called", func() {
+						Expect(dennis.CurrentBet).To(Equal(50))
+					})
+				})
+				Context("and they do not have enough chips to cover the call", func() {
+					BeforeEach(func() {
+						dennis.Chips = 25
+						action = Action{Player: dennis, ActionType: Call, Value: 0}
+						newState, err = Transition(*state, action)
+					})
+					It("does not produce an error", func() {
+						Expect(err).To(BeNil())
+					})
+					It("passes action to the next person", func() {
+						Expect(newState.Action).To(Equal(charlie))
+					})
+					It("decreases the calling player's chips to 0", func() {
+						Expect(dennis.Chips).To(Equal(0))
+					})
+					It("sets the player all-in", func() {
+						Expect(dennis.Status).To(Equal(AllIn))
+					})
+					It("sets the calling player's current bet to the amount they were able to match", func() {
+						Expect(dennis.CurrentBet).To(Equal(25))
+					})
+				})
 			})
 		})
 	})

@@ -81,5 +81,13 @@ func Transition(state GameState, action Action) (GameState, error) {
 	if action.Player != state.Action {
 		return state, errors.New("It's not your turn")
 	}
-	return GameState{}, nil
+
+	newState := state
+
+	if action.ActionType == Call {
+		action.Player.Bet(state.BetToMatch)
+	}
+
+	newState.Action = state.Action.NextPlayer
+	return newState, nil
 }
