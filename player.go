@@ -44,7 +44,7 @@ func (p *Player) Bet(value int) int {
 		p.Chips -= value
 	}
 
-	p.CurrentBet = chipsBet
+	p.CurrentBet += chipsBet
 	return chipsBet
 }
 

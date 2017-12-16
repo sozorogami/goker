@@ -1,6 +1,9 @@
 package goker_test
 
 import (
+	"strconv"
+	"strings"
+
 	. "github.com/sozorogami/goker"
 
 	. "github.com/onsi/ginkgo"
@@ -65,7 +68,7 @@ var _ = Describe("Gameplay", func() {
 		})
 		Context("when someone besides action tries to take their turn", func() {
 			BeforeEach(func() {
-				action = Action{Player: dee, ActionType: Raise, Value: 1000}
+				action = Action{Player: dee, ActionType: BetRaise, Value: 1000}
 				newState, err = Transition(*state, action)
 			})
 			It("rejects them", func() {
@@ -80,7 +83,7 @@ var _ = Describe("Gameplay", func() {
 			Context("when they call", func() {
 				Context("and they have enough chips to cover the call", func() {
 					BeforeEach(func() {
-						action = Action{Player: dennis, ActionType: Call, Value: 0}
+						action = Action{Player: dennis, ActionType: CheckCall, Value: 0}
 						newState, err = Transition(*state, action)
 					})
 					It("does not produce an error", func() {
@@ -99,7 +102,7 @@ var _ = Describe("Gameplay", func() {
 				Context("and they do not have enough chips to cover the call", func() {
 					BeforeEach(func() {
 						dennis.Chips = 25
-						action = Action{Player: dennis, ActionType: Call, Value: 0}
+						action = Action{Player: dennis, ActionType: CheckCall, Value: 0}
 						newState, err = Transition(*state, action)
 					})
 					It("does not produce an error", func() {
@@ -121,7 +124,65 @@ var _ = Describe("Gameplay", func() {
 			})
 		})
 	})
+
+	Describe("state after a simple preflop", func() {
+		BeforeEach(func() {
+			rules = GameRules{SmallBlind: 25, BigBlind: 50}
+			// Charlie deals and Dee and Mac post blinds
+			state = NewGame(players, rules)
+			// Dennis, Charlie and Dee call, Mac checks
+			newState := advance(*state, "C,C,C,C")
+			state = &newState
+		})
+		It("has reduced all players' chips by the big blind", func() {
+			for _, player := range state.Players {
+				Expect(player.Chips).To(Equal(950))
+			}
+		})
+		It("is now the flop", func() {
+			Expect(state.BettingRound).To(Equal(Flop))
+		})
+		It("puts action on the dealer", func() {
+			Expect(state.Action).To(Equal(state.Dealer))
+		})
+	})
 })
+
+func advance(state GameState, transitions string) GameState {
+	split := strings.Split(transitions, ",")
+
+	var err error
+	for _, t := range split {
+		player := state.Action
+		value := 0
+		var actionType ActionType
+
+		switch {
+		case t == "C":
+			actionType = CheckCall
+		case t == "F":
+			actionType = Fold
+		case strings.HasPrefix(t, "B"):
+			actionType = BetRaise
+
+			amtStr := strings.TrimPrefix(t, "B")
+			value, err = strconv.Atoi(amtStr)
+			if err != nil {
+				panic("Bad numeric value")
+			}
+		default:
+			panic("Unable to parse string")
+		}
+
+		state, err = Transition(state, Action{Player: player, ActionType: actionType, Value: value})
+
+		if err != nil {
+			panic("Advance failed: " + err.Error())
+		}
+	}
+
+	return state
+}
 
 func initializePlayers(players []*Player) {
 	SeatPlayers(players)
