@@ -16,3 +16,8 @@ func NewPot(value int, potentialWinners []*Player) *Pot {
 	pot := Pot{value, potentialWinnersSet}
 	return &pot
 }
+
+func (p Pot) removingWinner(player *Player) *Pot {
+	delete(p.PotentialWinners, player)
+	return &p
+}

@@ -22,10 +22,11 @@ var _ = Describe("Gameplay", func() {
 		dennis = NewPlayer("Dennis")
 		players = []*Player{charlie, dee, mac, dennis}
 		initializePlayers(players)
+
+		rules = GameRules{SmallBlind: 25, BigBlind: 50}
 	})
 	Describe("inital game state", func() {
 		BeforeEach(func() {
-			rules = GameRules{SmallBlind: 25, BigBlind: 50}
 			state = NewGame(players, rules)
 		})
 		It("has players", func() {
@@ -50,7 +51,7 @@ var _ = Describe("Gameplay", func() {
 			Expect(state.Pots).To(BeEmpty())
 		})
 		It("starts at turn zero", func() {
-			Expect(state.TurnNumber).To(Equal(0))
+			Expect(state.HandNumber).To(Equal(0))
 		})
 		It("starts preflop", func() {
 			Expect(state.BettingRound).To(Equal(Preflop))
@@ -63,7 +64,6 @@ var _ = Describe("Gameplay", func() {
 		var err error
 
 		BeforeEach(func() {
-			rules = GameRules{SmallBlind: 25, BigBlind: 50}
 			state = NewGame(players, rules)
 		})
 		Context("when someone besides action tries to take their turn", func() {
@@ -127,7 +127,6 @@ var _ = Describe("Gameplay", func() {
 
 	Describe("state after a simple preflop", func() {
 		BeforeEach(func() {
-			rules = GameRules{SmallBlind: 25, BigBlind: 50}
 			// Charlie deals and Dee and Mac post blinds
 			state = NewGame(players, rules)
 			// Dennis, Charlie and Dee call, Mac checks
@@ -144,6 +143,38 @@ var _ = Describe("Gameplay", func() {
 		})
 		It("puts action on the dealer", func() {
 			Expect(state.Action).To(Equal(state.Dealer))
+		})
+		It("has a pot with the blinds that includes all players", func() {
+			pots := state.Pots
+			Expect(len(pots)).To(Equal(1))
+			Expect(pots[0].Value).To(Equal(200))
+			Expect(len(pots[0].PotentialWinners)).To(Equal(4))
+		})
+		It("sets all players' current bets to zero", func() {
+			for _, player := range state.Players {
+				Expect(player.CurrentBet).To(Equal(0))
+			}
+		})
+	})
+
+	Describe("state after everyone folds to a player", func() {
+		BeforeEach(func() {
+			// Charlie deals and Dee and Mac post blinds
+			state = NewGame(players, rules)
+			// Dennis calls, Charlie, Dee and Mac fold
+			newState := advance(*state, "C,F,F,F")
+			state = &newState
+		})
+		It("is the next hand", func() {
+			Expect(state.HandNumber).To(Equal(1))
+		})
+		It("sets all players to active", func() {
+			for _, player := range state.Players {
+				Expect(player.Status).To(Equal(Active))
+			}
+		})
+		It("gives the pot to the remaining player", func() {
+			Expect(dennis.Chips).To(Equal(1075))
 		})
 	})
 })
