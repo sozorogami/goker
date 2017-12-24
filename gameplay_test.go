@@ -177,6 +177,26 @@ var _ = Describe("Gameplay", func() {
 			Expect(dennis.Chips).To(Equal(1075))
 		})
 	})
+
+	Describe("state when a player bets more than is matched", func() {
+		BeforeEach(func() {
+			dee.Chips = 200
+			// Charlie deals and Dee and Mac post blinds
+			state = NewGame(players, rules)
+			// Dennis folds, Charlie raises to 500, Dee calls and Mac folds
+			newState := advance(*state, "F,B450,C,F")
+			state = &newState
+		})
+		It("is the flop", func() {
+			Expect(state.BettingRound).To(Equal(Flop))
+		})
+		It("puts the matcher all-in", func() {
+			Expect(dee.Status).To(Equal(AllIn))
+		})
+		It("only makes the better pay what was matched", func() {
+			Expect(charlie.Chips).To(Equal(800))
+		})
+	})
 })
 
 func advance(state GameState, transitions string) GameState {

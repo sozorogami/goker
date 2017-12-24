@@ -7,12 +7,13 @@ import (
 )
 
 type GameState struct {
-	Dealer, Action, ActiveBigBlind *Player
-	Players                        []*Player
-	Pots                           []*Pot
+	Dealer, Action, ResolvingPlayer *Player
+	Players                         []*Player
+	Pots                            []*Pot
 	*Deck
 	Board      *CardSet
 	BetToMatch int
+	LastRaise  int
 	HandNumber int
 	BettingRound
 	GameRules
@@ -57,7 +58,7 @@ func NextHand(dealer *Player, players []*Player, rules GameRules, handNumber int
 	}
 
 	board := CardSet{}
-	gs := GameState{dealer, action, bigBlind, players, []*Pot{}, deck, &board, currentBet, handNumber, Preflop, rules}
+	gs := GameState{dealer, action, nil, players, []*Pot{}, deck, &board, currentBet, 0, handNumber, Preflop, rules}
 	return &gs
 }
 
@@ -92,6 +93,9 @@ func Transition(state GameState, action Action) (GameState, error) {
 	newState := state
 
 	if action.ActionType == CheckCall {
+		if state.ResolvingPlayer == nil {
+			newState.ResolvingPlayer = state.Action
+		}
 		action.Player.Bet(state.BetToMatch - action.Player.CurrentBet)
 	}
 
@@ -111,12 +115,41 @@ func Transition(state GameState, action Action) (GameState, error) {
 		newState.Pots = newPots
 	}
 
-	if action.Player == state.ActiveBigBlind {
-		newState.ActiveBigBlind = nil
+	if action.ActionType == BetRaise {
+		betAmt := action.Value + state.BetToMatch - state.Action.CurrentBet
+
+		if betAmt > state.Action.Chips {
+			errMsg := fmt.Sprintf("%s does not have %d chips", state.Action.Name, betAmt)
+			return state, errors.New(errMsg)
+		}
+
+		var minRaise int
+		if state.LastRaise != 0 {
+			minRaise = state.LastRaise * 2
+		} else {
+			minRaise = state.GameRules.BigBlind
+		}
+		if action.Value < minRaise && betAmt != state.Action.Chips {
+			errMsg := fmt.Sprintf("%s must raise at least %d or go all in", state.Action.Name, minRaise)
+			return state, errors.New(errMsg)
+		}
+
+		state.Action.Bet(betAmt)
+		newState.BetToMatch = betAmt
+		newState.ResolvingPlayer = state.Action
+		newState.LastRaise = action.Value
 	}
 
 	if shouldAdvanceRound(newState) {
-		newState.Pots = combinePots(makePots(newState.Players), state.Pots)
+		pots, singleton := separateSingletonPot(makePots(newState.Players))
+
+		if singleton != nil {
+			for player, _ := range singleton.PotentialWinners {
+				player.Chips += singleton.Value
+			}
+		}
+
+		newState.Pots = combinePots(pots, state.Pots)
 		newState.BettingRound = state.BettingRound + 1
 		newState.Action = nextActivePlayer(state.Dealer)
 	} else {
@@ -204,10 +237,24 @@ func makePots(players []*Player) []*Pot {
 				}
 			}
 		}
+
 		pots = append(pots, NewPot(value, potentialWinners))
 	}
 
 	return pots
+}
+
+func separateSingletonPot(pots []*Pot) ([]*Pot, *Pot) {
+	newPots := []*Pot{}
+	var singleton *Pot
+	for i := range pots {
+		if len(pots[i].PotentialWinners) == 1 {
+			singleton = pots[i]
+		} else {
+			newPots = append(newPots, pots[i])
+		}
+	}
+	return newPots, singleton
 }
 
 func findMinBetter(players []*Player) *Player {
@@ -249,16 +296,6 @@ func onlyRemainingPlayer(players []*Player) *Player {
 }
 
 func shouldAdvanceRound(state GameState) bool {
-	// Don't end the turn until big blind has had a chance to act
-	if state.ActiveBigBlind != nil {
-		return false
-	}
-
-	for _, player := range state.Players {
-		if player.Status == Active && player.CurrentBet != state.BetToMatch {
-			return false
-		}
-	}
-
-	return true
+	return nextActivePlayer(state.Action.NextPlayer) == state.ResolvingPlayer ||
+		nextActivePlayer(state.Action.NextPlayer) == state.Action
 }
