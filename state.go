@@ -11,7 +11,7 @@ type GameState struct {
 	Players                         []*Player
 	Pots                            []*Pot
 	*Deck
-	Board      *CardSet
+	Board      CardSet
 	BetToMatch int
 	LastRaise  int
 	HandNumber int
@@ -57,7 +57,7 @@ func NextHand(dealer *Player, players []*Player, rules GameRules, deck *Deck, ha
 	}
 
 	board := CardSet{}
-	gs := GameState{dealer, action, nil, players, []*Pot{}, deck, &board, currentBet, 0, handNumber, Preflop, rules}
+	gs := GameState{dealer, action, nil, players, []*Pot{}, deck, board, currentBet, 0, handNumber, Preflop, rules}
 	return &gs
 }
 
@@ -155,7 +155,7 @@ func Transition(state GameState, action Action) (GameState, error) {
 			remainingPlayers := nonFoldedPlayers(state.Players)
 
 			for _, player := range remainingPlayers {
-				cards := append(*state.Board, player.HoleCards...)
+				cards := append(state.Board, player.HoleCards...)
 				player.GetHand(cards.BestPossibleHand())
 			}
 
@@ -200,8 +200,7 @@ func Transition(state GameState, action Action) (GameState, error) {
 		case Turn, River:
 			cardsToDraw = 1
 		}
-		newBoard := append(*newState.Board, newState.Deck.Draw(cardsToDraw)...)
-		newState.Board = &newBoard
+		newState.Board = append(newState.Board, newState.Deck.Draw(cardsToDraw)...)
 	} else {
 		newState.Action = nextActivePlayer(state.Action.NextPlayer)
 	}
