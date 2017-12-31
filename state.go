@@ -84,123 +84,151 @@ const (
 	Fold
 )
 
+func handleCheckOrCall(state GameState) GameState {
+	player := state.Action
+	if state.ResolvingPlayer == nil {
+		state.ResolvingPlayer = state.Action
+	}
+	player.Bet(state.BetToMatch - player.CurrentBet)
+	return state
+}
+
+func handleFold(state GameState) GameState {
+	newPots := potsRemovingFoldedPlayer(state.Action, state.Pots)
+	state.Action.Status = Folded
+
+	// Award the pot immediately and advance hand if only one player remains
+	if lastPlayer := onlyRemainingPlayer(state.Players); lastPlayer != nil {
+		newPots = combinePots(gatherBets(state.Players), newPots)
+		lastPlayer.Chips += totalPotValue(newPots)
+		return advanceHand(state)
+	}
+
+	state.Pots = newPots
+	return state
+}
+
+func handleShowdown(state GameState, pots []*Pot) {
+	remainingPlayers := nonFoldedPlayers(state.Players)
+
+	for _, player := range remainingPlayers {
+		cards := append(state.Board, player.HoleCards...)
+		player.GetHand(cards.BestPossibleHand())
+	}
+
+	payouts, oddChipPots := Showdown(remainingPlayers, pots)
+
+	for player, winnings := range payouts {
+		player.Chips += winnings
+	}
+
+	for _, oddChipPot := range oddChipPots {
+		oddChipPayee := state.Dealer
+		for oddChipPot.Value > 0 {
+			_, inPot := oddChipPot.PotentialWinners[oddChipPayee]
+			if inPot {
+				oddChipPayee.Chips++
+				oddChipPot.Value--
+			}
+			oddChipPayee = oddChipPayee.NextPlayer
+		}
+	}
+}
+
+func advanceHand(state GameState) GameState {
+	refreshStatuses(state.Players)
+	nextHand := NextHand(nextActivePlayer(state.Dealer),
+		state.Players,
+		state.GameRules,
+		NewDeck(),
+		state.HandNumber+1)
+	return *nextHand
+}
+
+func handleBetOrRaise(state GameState, increase int) (GameState, error) {
+	betAmt := increase + state.BetToMatch - state.Action.CurrentBet
+
+	if betAmt > state.Action.Chips {
+		errMsg := fmt.Sprintf("%s does not have %d chips", state.Action.Name, betAmt)
+		return state, errors.New(errMsg)
+	}
+
+	var minRaise int
+	if state.LastRaise != 0 {
+		minRaise = state.LastRaise * 2
+	} else {
+		minRaise = state.GameRules.BigBlind
+	}
+	if increase < minRaise && betAmt != state.Action.Chips {
+		errMsg := fmt.Sprintf("%s must raise at least %d or go all in", state.Action.Name, minRaise)
+		return state, errors.New(errMsg)
+	}
+
+	state.Action.Bet(betAmt)
+	state.BetToMatch = betAmt
+	state.ResolvingPlayer = state.Action
+	state.LastRaise = increase
+	return state, nil
+}
+
+func advanceRound(state GameState) GameState {
+	pots, singleton := separateSingletonPot(gatherBets(state.Players))
+
+	if singleton != nil {
+		for player := range singleton.PotentialWinners {
+			player.Chips += singleton.Value
+		}
+	}
+
+	newPots := combinePots(pots, state.Pots)
+
+	if state.BettingRound == River {
+		handleShowdown(state, newPots)
+		return advanceHand(state)
+	}
+
+	state.Pots = newPots
+	state.BettingRound = state.BettingRound + 1
+	state.Action = nextActivePlayer(state.Dealer.NextPlayer)
+	state.BetToMatch = 0
+	state.LastRaise = 0
+	state.ResolvingPlayer = state.Action
+
+	var cardsToDraw int
+	switch state.BettingRound {
+	case Flop:
+		cardsToDraw = 3
+	case Turn, River:
+		cardsToDraw = 1
+	}
+
+	state.Board = append(state.Board, state.Deck.Draw(cardsToDraw)...)
+	return state
+}
+
 func Transition(state GameState, action Action) (GameState, error) {
 	if action.Player != state.Action {
 		return state, errors.New(fmt.Sprintf("It's not %s's turn\n", action.Player.Name))
 	}
 
+	var err error
 	newState := state
 
-	if action.ActionType == CheckCall {
-		if state.ResolvingPlayer == nil {
-			newState.ResolvingPlayer = state.Action
-		}
-		action.Player.Bet(state.BetToMatch - action.Player.CurrentBet)
+	switch action.ActionType {
+	case CheckCall:
+		newState = handleCheckOrCall(state)
+	case BetRaise:
+		newState, err = handleBetOrRaise(state, action.Value)
+	case Fold:
+		newState = handleFold(state)
 	}
 
-	if action.ActionType == Fold {
-		newPots := potsRemovingFoldedPlayer(state.Action, state.Pots)
-		state.Action.Status = Folded
-		if lastPlayer := onlyRemainingPlayer(state.Players); lastPlayer != nil {
-			newPots = combinePots(makePots(state.Players), newPots)
-			lastPlayer.Chips += totalPotValue(newPots)
-			refreshStatuses(state.Players)
-			next := NextHand(nextActivePlayer(state.Dealer),
-				state.Players,
-				state.GameRules,
-				NewDeck(),
-				state.HandNumber+1)
-			return *next, nil
-		}
-		newState.Pots = newPots
-	}
-
-	if action.ActionType == BetRaise {
-		betAmt := action.Value + state.BetToMatch - state.Action.CurrentBet
-
-		if betAmt > state.Action.Chips {
-			errMsg := fmt.Sprintf("%s does not have %d chips", state.Action.Name, betAmt)
-			return state, errors.New(errMsg)
-		}
-
-		var minRaise int
-		if state.LastRaise != 0 {
-			minRaise = state.LastRaise * 2
-		} else {
-			minRaise = state.GameRules.BigBlind
-		}
-		if action.Value < minRaise && betAmt != state.Action.Chips {
-			errMsg := fmt.Sprintf("%s must raise at least %d or go all in", state.Action.Name, minRaise)
-			return state, errors.New(errMsg)
-		}
-
-		state.Action.Bet(betAmt)
-		newState.BetToMatch = betAmt
-		newState.ResolvingPlayer = state.Action
-		newState.LastRaise = action.Value
+	if err != nil {
+		return state, err
 	}
 
 	if shouldAdvanceRound(newState) {
-		pots, singleton := separateSingletonPot(makePots(newState.Players))
-
-		if singleton != nil {
-			for player := range singleton.PotentialWinners {
-				player.Chips += singleton.Value
-			}
-		}
-
-		newPots := combinePots(pots, state.Pots)
-
-		if state.BettingRound == River {
-			remainingPlayers := nonFoldedPlayers(state.Players)
-
-			for _, player := range remainingPlayers {
-				cards := append(state.Board, player.HoleCards...)
-				player.GetHand(cards.BestPossibleHand())
-			}
-
-			payouts, oddChipPots := Showdown(remainingPlayers, newPots)
-
-			for player, winnings := range payouts {
-				player.Chips += winnings
-			}
-
-			for _, oddChipPot := range oddChipPots {
-				oddChipPayee := state.Dealer
-				for oddChipPot.Value > 0 {
-					_, inPot := oddChipPot.PotentialWinners[oddChipPayee]
-					if inPot {
-						oddChipPayee.Chips++
-						oddChipPot.Value--
-					}
-					oddChipPayee = oddChipPayee.NextPlayer
-				}
-			}
-
-			refreshStatuses(state.Players)
-			next := NextHand(nextActivePlayer(state.Dealer),
-				state.Players,
-				state.GameRules,
-				NewDeck(),
-				state.HandNumber+1)
-			return *next, nil
-		}
-
-		newState.Pots = newPots
-		newState.BettingRound = state.BettingRound + 1
-		newState.Action = nextActivePlayer(state.Dealer.NextPlayer)
-		newState.BetToMatch = 0
-		newState.LastRaise = 0
-		newState.ResolvingPlayer = newState.Action
-
-		var cardsToDraw int
-		switch newState.BettingRound {
-		case Flop:
-			cardsToDraw = 3
-		case Turn, River:
-			cardsToDraw = 1
-		}
-		newState.Board = append(newState.Board, newState.Deck.Draw(cardsToDraw)...)
+		newState = advanceRound(state)
 	} else {
 		newState.Action = nextActivePlayer(state.Action.NextPlayer)
 	}
@@ -282,7 +310,7 @@ func sameWinners(pot1, pot2 *Pot) bool {
 	return true
 }
 
-func makePots(players []*Player) []*Pot {
+func gatherBets(players []*Player) []*Pot {
 	pots := []*Pot{}
 	for minBetter := findMinBetter(players); minBetter != nil; minBetter = findMinBetter(players) {
 		minBet := minBetter.CurrentBet
