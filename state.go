@@ -3,7 +3,6 @@ package goker
 import (
 	"errors"
 	"fmt"
-	"math"
 )
 
 type GameState struct {
@@ -235,16 +234,6 @@ func Transition(state GameState, action Action) (GameState, error) {
 	return newState, nil
 }
 
-func nonFoldedPlayers(players []*Player) []*Player {
-	nonFolded := []*Player{}
-	for _, player := range players {
-		if player.Status != Folded && player.Status != Eliminated {
-			nonFolded = append(nonFolded, player)
-		}
-	}
-	return nonFolded
-}
-
 func refreshStatuses(players []*Player) {
 	for _, player := range players {
 		if player.Status != Eliminated {
@@ -274,46 +263,10 @@ func potsRemovingFoldedPlayer(player *Player, pots []*Pot) []*Pot {
 	return cpy
 }
 
-func combinePots(newPots []*Pot, existingPots []*Pot) []*Pot {
-	combined := make([]*Pot, len(existingPots))
-	copy(combined, existingPots)
-	for _, newPot := range newPots {
-		potExists := false
-		for _, oldPot := range combined {
-			if sameWinners(oldPot, newPot) {
-				potExists = true
-				oldPot.Value += newPot.Value
-				newPot.Value = 0
-			}
-		}
-		if !potExists {
-			combined = append(combined, newPot)
-		}
-	}
-	return combined
-}
-
-// TODO: This could surely be cleaner...
-func sameWinners(pot1, pot2 *Pot) bool {
-	for player, _ := range pot1.PotentialWinners {
-		_, ok := pot2.PotentialWinners[player]
-		if !ok {
-			return false
-		}
-	}
-	for player, _ := range pot2.PotentialWinners {
-		_, ok := pot1.PotentialWinners[player]
-		if !ok {
-			return false
-		}
-	}
-	return true
-}
-
 func gatherBets(players []*Player) []*Pot {
 	pots := []*Pot{}
-	for minBetter := findMinBetter(players); minBetter != nil; minBetter = findMinBetter(players) {
-		minBet := minBetter.CurrentBet
+	for mb := minBetter(players); mb != nil; mb = minBetter(players) {
+		minBet := mb.CurrentBet
 		value := 0
 		potentialWinners := []*Player{}
 		for _, player := range players {
@@ -325,62 +278,10 @@ func gatherBets(players []*Player) []*Pot {
 				}
 			}
 		}
-
 		pots = append(pots, NewPot(value, potentialWinners))
 	}
 
 	return pots
-}
-
-func separateSingletonPot(pots []*Pot) ([]*Pot, *Pot) {
-	newPots := []*Pot{}
-	var singleton *Pot
-	for i := range pots {
-		if len(pots[i].PotentialWinners) == 1 {
-			singleton = pots[i]
-		} else {
-			newPots = append(newPots, pots[i])
-		}
-	}
-	return newPots, singleton
-}
-
-func findMinBetter(players []*Player) *Player {
-	minBet := math.MaxInt64
-	var minBetter *Player
-	for _, player := range players {
-		if player.CurrentBet > 0 && player.CurrentBet < minBet {
-			minBet = player.CurrentBet
-			minBetter = player
-		}
-	}
-	return minBetter
-}
-
-func nextActivePlayer(start *Player) *Player {
-	if start.Status == Active {
-		return start
-	}
-	for player := start.NextPlayer; player != start; player = player.NextPlayer {
-		if player.Status == Active {
-			return player
-		}
-	}
-	panic("No active players!")
-}
-
-func onlyRemainingPlayer(players []*Player) *Player {
-	var activePlayer *Player
-	for _, player := range players {
-		if player.Status == Active || player.Status == AllIn {
-			if activePlayer == nil {
-				activePlayer = player
-			} else {
-				return nil
-			}
-		}
-	}
-	return activePlayer
 }
 
 func shouldAdvanceRound(state GameState) bool {

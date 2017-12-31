@@ -1,5 +1,7 @@
 package goker
 
+import "math"
+
 // Player represents a poker game participant
 type Player struct {
 	Name       string
@@ -66,6 +68,54 @@ func SeatPlayers(players []*Player) {
 			players[i].NextPlayer = players[i+1]
 		}
 	}
+}
+
+func nextActivePlayer(start *Player) *Player {
+	if start.Status == Active {
+		return start
+	}
+	for player := start.NextPlayer; player != start; player = player.NextPlayer {
+		if player.Status == Active {
+			return player
+		}
+	}
+	panic("No active players!")
+}
+
+func onlyRemainingPlayer(players []*Player) *Player {
+	var activePlayer *Player
+	for _, player := range players {
+		if player.Status == Active || player.Status == AllIn {
+			if activePlayer == nil {
+				activePlayer = player
+			} else {
+				return nil
+			}
+		}
+	}
+	return activePlayer
+}
+
+func nonFoldedPlayers(players []*Player) []*Player {
+	nonFolded := []*Player{}
+	for _, player := range players {
+		if player.Status != Folded && player.Status != Eliminated {
+			nonFolded = append(nonFolded, player)
+		}
+	}
+	return nonFolded
+}
+
+func minBetter(players []*Player) *Player {
+	minBet := math.MaxInt64
+	var minBetter *Player
+	for _, player := range players {
+		if player.CurrentBet > 0 && player.CurrentBet < minBet {
+			minBet = player.CurrentBet
+			minBetter = player
+		}
+	}
+	return minBetter
 }
 
 type PlayerStatus int8
