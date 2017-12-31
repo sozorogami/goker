@@ -26,6 +26,11 @@ func NewDeck() *Deck {
 	return &d
 }
 
+func NewStackedDeck(cards CardSet) *Deck {
+	d := Deck{cards}
+	return &d
+}
+
 // Len returns the number of cards remaining in the deck
 func (d Deck) Len() int {
 	return len(d.cards)

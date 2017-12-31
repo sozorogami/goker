@@ -24,12 +24,12 @@ type GameRules struct {
 	BigBlind   int
 }
 
-func NewGame(players []*Player, rules GameRules) *GameState {
+func NewGame(players []*Player, rules GameRules, deck *Deck) *GameState {
 	dealer := players[0] // TODO: Randomize
-	return NextHand(dealer, players, rules, 0)
+	return NextHand(dealer, players, rules, deck, 0)
 }
 
-func NextHand(dealer *Player, players []*Player, rules GameRules, handNumber int) *GameState {
+func NextHand(dealer *Player, players []*Player, rules GameRules, deck *Deck, handNumber int) *GameState {
 	if len(players) < 2 {
 		panic("Need at least two players for poker!")
 	}
@@ -51,7 +51,6 @@ func NextHand(dealer *Player, players []*Player, rules GameRules, handNumber int
 
 	// TODO: What if big blind can't match and goes all-in?
 	currentBet := rules.BigBlind
-	deck := NewDeck()
 
 	for _, player := range players {
 		player.HoleCards = deck.Draw(2)
@@ -109,6 +108,7 @@ func Transition(state GameState, action Action) (GameState, error) {
 			next := NextHand(nextActivePlayer(state.Dealer),
 				state.Players,
 				state.GameRules,
+				NewDeck(),
 				state.HandNumber+1)
 			return *next, nil
 		}
@@ -144,18 +144,78 @@ func Transition(state GameState, action Action) (GameState, error) {
 		pots, singleton := separateSingletonPot(makePots(newState.Players))
 
 		if singleton != nil {
-			for player, _ := range singleton.PotentialWinners {
+			for player := range singleton.PotentialWinners {
 				player.Chips += singleton.Value
 			}
 		}
 
-		newState.Pots = combinePots(pots, state.Pots)
+		newPots := combinePots(pots, state.Pots)
+
+		if state.BettingRound == River {
+			remainingPlayers := nonFoldedPlayers(state.Players)
+
+			for _, player := range remainingPlayers {
+				cards := append(*state.Board, player.HoleCards...)
+				player.GetHand(cards.BestPossibleHand())
+			}
+
+			payouts, oddChipPots := Showdown(remainingPlayers, newPots)
+
+			for player, winnings := range payouts {
+				player.Chips += winnings
+			}
+
+			for _, oddChipPot := range oddChipPots {
+				oddChipPayee := state.Dealer
+				for oddChipPot.Value > 0 {
+					_, inPot := oddChipPot.PotentialWinners[oddChipPayee]
+					if inPot {
+						oddChipPayee.Chips++
+						oddChipPot.Value--
+					}
+					oddChipPayee = oddChipPayee.NextPlayer
+				}
+			}
+
+			refreshStatuses(state.Players)
+			next := NextHand(nextActivePlayer(state.Dealer),
+				state.Players,
+				state.GameRules,
+				NewDeck(),
+				state.HandNumber+1)
+			return *next, nil
+		}
+
+		newState.Pots = newPots
 		newState.BettingRound = state.BettingRound + 1
-		newState.Action = nextActivePlayer(state.Dealer)
+		newState.Action = nextActivePlayer(state.Dealer.NextPlayer)
+		newState.BetToMatch = 0
+		newState.LastRaise = 0
+		newState.ResolvingPlayer = newState.Action
+
+		var cardsToDraw int
+		switch newState.BettingRound {
+		case Flop:
+			cardsToDraw = 3
+		case Turn, River:
+			cardsToDraw = 1
+		}
+		newBoard := append(*newState.Board, newState.Deck.Draw(cardsToDraw)...)
+		newState.Board = &newBoard
 	} else {
 		newState.Action = nextActivePlayer(state.Action.NextPlayer)
 	}
 	return newState, nil
+}
+
+func nonFoldedPlayers(players []*Player) []*Player {
+	nonFolded := []*Player{}
+	for _, player := range players {
+		if player.Status != Folded && player.Status != Eliminated {
+			nonFolded = append(nonFolded, player)
+		}
+	}
+	return nonFolded
 }
 
 func refreshStatuses(players []*Player) {
@@ -166,6 +226,7 @@ func refreshStatuses(players []*Player) {
 		if player.Chips == 0 {
 			player.Status = Eliminated
 		}
+		player.MuckHand()
 	}
 }
 
@@ -191,7 +252,7 @@ func combinePots(newPots []*Pot, existingPots []*Pot) []*Pot {
 	copy(combined, existingPots)
 	for _, newPot := range newPots {
 		potExists := false
-		for _, oldPot := range existingPots {
+		for _, oldPot := range combined {
 			if sameWinners(oldPot, newPot) {
 				potExists = true
 				oldPot.Value += newPot.Value
@@ -296,6 +357,6 @@ func onlyRemainingPlayer(players []*Player) *Player {
 }
 
 func shouldAdvanceRound(state GameState) bool {
-	return nextActivePlayer(state.Action.NextPlayer) == state.ResolvingPlayer ||
-		nextActivePlayer(state.Action.NextPlayer) == state.Action
+	next := nextActivePlayer(state.Action.NextPlayer)
+	return next == state.ResolvingPlayer || next == state.Action
 }

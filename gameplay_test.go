@@ -27,7 +27,7 @@ var _ = Describe("Gameplay", func() {
 	})
 	Describe("inital game state", func() {
 		BeforeEach(func() {
-			state = NewGame(players, rules)
+			state = NewGame(players, rules, NewDeck())
 		})
 		It("has players", func() {
 			Expect(state.Players).NotTo(BeEmpty())
@@ -64,7 +64,7 @@ var _ = Describe("Gameplay", func() {
 		var err error
 
 		BeforeEach(func() {
-			state = NewGame(players, rules)
+			state = NewGame(players, rules, NewDeck())
 		})
 		Context("when someone besides action tries to take their turn", func() {
 			BeforeEach(func() {
@@ -128,7 +128,7 @@ var _ = Describe("Gameplay", func() {
 	Describe("state after a simple preflop", func() {
 		BeforeEach(func() {
 			// Charlie deals and Dee and Mac post blinds
-			state = NewGame(players, rules)
+			state = NewGame(players, rules, NewDeck())
 			// Dennis, Charlie and Dee call, Mac checks
 			newState := advance(*state, "C,C,C,C")
 			state = &newState
@@ -141,8 +141,8 @@ var _ = Describe("Gameplay", func() {
 		It("is now the flop", func() {
 			Expect(state.BettingRound).To(Equal(Flop))
 		})
-		It("puts action on the dealer", func() {
-			Expect(state.Action).To(Equal(state.Dealer))
+		It("puts action to the left the dealer", func() {
+			Expect(state.Action).To(Equal(state.Dealer.NextPlayer))
 		})
 		It("has a pot with the blinds that includes all players", func() {
 			pots := state.Pots
@@ -160,7 +160,7 @@ var _ = Describe("Gameplay", func() {
 	Describe("state after everyone folds to a player", func() {
 		BeforeEach(func() {
 			// Charlie deals and Dee and Mac post blinds
-			state = NewGame(players, rules)
+			state = NewGame(players, rules, NewDeck())
 			// Dennis calls, Charlie, Dee and Mac fold
 			newState := advance(*state, "C,F,F,F")
 			state = &newState
@@ -182,7 +182,7 @@ var _ = Describe("Gameplay", func() {
 		BeforeEach(func() {
 			dee.Chips = 200
 			// Charlie deals and Dee and Mac post blinds
-			state = NewGame(players, rules)
+			state = NewGame(players, rules, NewDeck())
 			// Dennis folds, Charlie raises to 500, Dee calls and Mac folds
 			newState := advance(*state, "F,B450,C,F")
 			state = &newState
@@ -195,6 +195,34 @@ var _ = Describe("Gameplay", func() {
 		})
 		It("only makes the better pay what was matched", func() {
 			Expect(charlie.Chips).To(Equal(800))
+		})
+	})
+
+	Describe("a hand that goes to showdown", func() {
+		BeforeEach(func() {
+			// Charlie deals and Dee and Mac post blinds
+			state = NewGame(players, rules, NewDeck())
+			charlie.HoleCards = CardSet{NewCard(Ace, Spade), NewCard(Ace, Diamond)}
+			dee.HoleCards = CardSet{NewCard(King, Heart), NewCard(Queen, Heart)}
+			mac.HoleCards = CardSet{NewCard(Seven, Club), NewCard(Two, Club)}
+			dennis.HoleCards = CardSet{NewCard(Seven, Diamond), NewCard(Two, Diamond)}
+			deck := NewStackedDeck(CardSet{
+				NewCard(Ace, Heart),
+				NewCard(Two, Heart),
+				NewCard(Two, Spade),
+				NewCard(Seven, Heart),
+				NewCard(Nine, Club),
+			})
+			state.Deck = deck
+			preflop := advance(*state, "F,B50,C,F") // Mac and Dennis fold, Dee calls Charlie's raise
+			flop := advance(preflop, "C,B100,C")    // Dee cheks, then calls Charlie's bet of 100
+			turn := advance(flop, "C,B100,C")
+			river := advance(turn, "C,B100,C")
+			state = &river
+		})
+		It("gives the winner the loser's money", func() {
+			Expect(charlie.Chips).To(Equal(1450))
+			Expect(dee.Chips).To(Equal(575)) // minus extra 25 for next small blind
 		})
 	})
 })
