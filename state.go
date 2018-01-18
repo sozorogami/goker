@@ -136,7 +136,7 @@ func handleShowdown(state GameState, pots []*Pot) {
 
 func advanceHand(state GameState) GameState {
 	refreshStatuses(state.Players)
-	nextHand := NextHand(nextActivePlayer(state.Dealer),
+	nextHand := NextHand(nextActivePlayer(state.Dealer.NextPlayer),
 		state.Players,
 		state.GameRules,
 		NewDeck(),

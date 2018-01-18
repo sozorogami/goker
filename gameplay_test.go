@@ -174,7 +174,7 @@ var _ = Describe("Gameplay", func() {
 			}
 		})
 		It("gives the pot to the remaining player", func() {
-			Expect(dennis.Chips).To(Equal(1075))
+			Expect(dennis.Chips + dennis.CurrentBet).To(Equal(1075))
 		})
 	})
 
@@ -215,14 +215,17 @@ var _ = Describe("Gameplay", func() {
 			})
 			state.Deck = deck
 			preflop := advance(*state, "F,B50,C,F") // Mac and Dennis fold, Dee calls Charlie's raise
-			flop := advance(preflop, "C,B100,C")    // Dee cheks, then calls Charlie's bet of 100
+			flop := advance(preflop, "C,B100,C")    // Dee checks, then calls Charlie's bet of 100
 			turn := advance(flop, "C,B100,C")
 			river := advance(turn, "C,B100,C")
 			state = &river
 		})
 		It("gives the winner the loser's money", func() {
-			Expect(charlie.Chips).To(Equal(1450))
-			Expect(dee.Chips).To(Equal(575)) // minus extra 25 for next small blind
+			Expect(charlie.Chips + charlie.CurrentBet).To(Equal(1450))
+			Expect(dee.Chips + dee.CurrentBet).To(Equal(600))
+		})
+		It("advances the dealer", func() {
+			Expect(state.Dealer).To(Equal(dee))
 		})
 	})
 })
