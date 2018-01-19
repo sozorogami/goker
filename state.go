@@ -86,24 +86,15 @@ const (
 func handleCheckOrCall(state GameState) GameState {
 	player := state.Action
 	if state.ResolvingPlayer == nil {
-		state.ResolvingPlayer = state.Action
+		state.ResolvingPlayer = player
 	}
 	player.Bet(state.BetToMatch - player.CurrentBet)
 	return state
 }
 
 func handleFold(state GameState) GameState {
-	newPots := potsRemovingFoldedPlayer(state.Action, state.Pots)
+	state.Pots = potsRemovingFoldedPlayer(state.Action, state.Pots)
 	state.Action.Status = Folded
-
-	// Award the pot immediately and advance hand if only one player remains
-	if lastPlayer := onlyRemainingPlayer(state.Players); lastPlayer != nil {
-		newPots = combinePots(gatherBets(state.Players), newPots)
-		lastPlayer.Chips += totalPotValue(newPots)
-		return advanceHand(state)
-	}
-
-	state.Pots = newPots
 	return state
 }
 
@@ -171,6 +162,12 @@ func handleBetOrRaise(state GameState, increase int) (GameState, error) {
 }
 
 func advanceRound(state GameState) GameState {
+	if lastPlayer := onlyRemainingPlayer(state.Players); lastPlayer != nil {
+		pots := combinePots(gatherBets(state.Players), state.Pots)
+		lastPlayer.Chips += totalPotValue(pots)
+		return advanceHand(state)
+	}
+
 	pots, singleton := separateSingletonPot(gatherBets(state.Players))
 
 	if singleton != nil {
@@ -227,7 +224,7 @@ func Transition(state GameState, action Action) (GameState, error) {
 	}
 
 	if shouldAdvanceRound(newState) {
-		newState = advanceRound(state)
+		newState = advanceRound(newState)
 	} else {
 		newState.Action = nextActivePlayer(state.Action.NextPlayer)
 	}
@@ -285,6 +282,9 @@ func gatherBets(players []*Player) []*Pot {
 }
 
 func shouldAdvanceRound(state GameState) bool {
-	next := nextActivePlayer(state.Action.NextPlayer)
-	return next == state.ResolvingPlayer || next == state.Action
+	if onlyRemainingPlayer(state.Players) != nil {
+		return true
+	}
+	nextActive := nextActivePlayer(state.Action.NextPlayer)
+	return nextActive == state.ResolvingPlayer || nextActive == state.Action
 }

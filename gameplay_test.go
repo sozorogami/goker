@@ -176,6 +176,9 @@ var _ = Describe("Gameplay", func() {
 		It("gives the pot to the remaining player", func() {
 			Expect(dennis.Chips + dennis.CurrentBet).To(Equal(1075))
 		})
+		It("sets action correctly", func() {
+			Expect(state.Action).To(Equal(charlie))
+		})
 	})
 
 	Describe("state when a player bets more than is matched", func() {
