@@ -79,7 +79,7 @@ func nextActivePlayer(start *Player) *Player {
 			return player
 		}
 	}
-	panic("No active players!")
+	return nil
 }
 
 func onlyRemainingPlayer(players []*Player) *Player {

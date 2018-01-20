@@ -217,18 +217,31 @@ var _ = Describe("Gameplay", func() {
 				NewCard(Nine, Club),
 			})
 			state.Deck = deck
-			preflop := advance(*state, "F,B50,C,F") // Mac and Dennis fold, Dee calls Charlie's raise
-			flop := advance(preflop, "C,B100,C")    // Dee checks, then calls Charlie's bet of 100
-			turn := advance(flop, "C,B100,C")
-			river := advance(turn, "C,B100,C")
-			state = &river
 		})
-		It("gives the winner the loser's money", func() {
-			Expect(charlie.Chips + charlie.CurrentBet).To(Equal(1450))
-			Expect(dee.Chips + dee.CurrentBet).To(Equal(600))
+		Context("when everyone goes all-in and there's one winner", func() {
+			BeforeEach(func() {
+				s := advance(*state, "B950,C,C,C")
+				state = &s
+			})
+			It("completes the game", func() {
+				Expect(state.Complete).To(BeTrue())
+			})
 		})
-		It("advances the dealer", func() {
-			Expect(state.Dealer).To(Equal(dee))
+		Context("when it's heads-up", func() {
+			BeforeEach(func() {
+				preflop := advance(*state, "F,B50,C,F") // Mac and Dennis fold, Dee calls Charlie's raise
+				flop := advance(preflop, "C,B100,C")    // Dee checks, then calls Charlie's bet of 100
+				turn := advance(flop, "C,B100,C")
+				river := advance(turn, "C,B100,C")
+				state = &river
+			})
+			It("gives the winner the loser's money", func() {
+				Expect(charlie.Chips + charlie.CurrentBet).To(Equal(1450))
+				Expect(dee.Chips + dee.CurrentBet).To(Equal(600))
+			})
+			It("advances the dealer", func() {
+				Expect(state.Dealer).To(Equal(dee))
+			})
 		})
 	})
 })

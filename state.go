@@ -10,12 +10,11 @@ type GameState struct {
 	Players                         []*Player
 	Pots                            []*Pot
 	*Deck
-	Board      CardSet
-	BetToMatch int
-	LastRaise  int
-	HandNumber int
+	Board                             CardSet
+	BetToMatch, LastRaise, HandNumber int
 	BettingRound
 	GameRules
+	Complete bool
 }
 
 type GameRules struct {
@@ -56,7 +55,7 @@ func NextHand(dealer *Player, players []*Player, rules GameRules, deck *Deck, ha
 	}
 
 	board := CardSet{}
-	gs := GameState{dealer, action, nil, players, []*Pot{}, deck, board, currentBet, 0, handNumber, Preflop, rules}
+	gs := GameState{dealer, action, nil, players, []*Pot{}, deck, board, currentBet, 0, handNumber, Preflop, rules, false}
 	return &gs
 }
 
@@ -127,6 +126,10 @@ func handleShowdown(state GameState, pots []*Pot) {
 
 func advanceHand(state GameState) GameState {
 	refreshStatuses(state.Players)
+	if onlyRemainingPlayer(state.Players) != nil {
+		state.Complete = true
+		return state
+	}
 	nextHand := NextHand(nextActivePlayer(state.Dealer.NextPlayer),
 		state.Players,
 		state.GameRules,
@@ -185,10 +188,8 @@ func advanceRound(state GameState) GameState {
 
 	state.Pots = newPots
 	state.BettingRound = state.BettingRound + 1
-	state.Action = nextActivePlayer(state.Dealer.NextPlayer)
 	state.BetToMatch = 0
 	state.LastRaise = 0
-	state.ResolvingPlayer = state.Action
 
 	var cardsToDraw int
 	switch state.BettingRound {
@@ -199,10 +200,21 @@ func advanceRound(state GameState) GameState {
 	}
 
 	state.Board = append(state.Board, state.Deck.Draw(cardsToDraw)...)
-	return state
+
+	if np := nextActivePlayer(state.Dealer.NextPlayer); np != nil {
+		state.Action = np
+		state.ResolvingPlayer = np
+		return state
+	} else {
+		return advanceRound(state)
+	}
 }
 
 func Transition(state GameState, action Action) (GameState, error) {
+	if state.Complete {
+		return state, errors.New("This game is complete.")
+	}
+
 	if action.Player != state.Action {
 		return state, errors.New(fmt.Sprintf("It's not %s's turn\n", action.Player.Name))
 	}
@@ -285,6 +297,6 @@ func shouldAdvanceRound(state GameState) bool {
 	if onlyRemainingPlayer(state.Players) != nil {
 		return true
 	}
-	nextActive := nextActivePlayer(state.Action.NextPlayer)
-	return nextActive == state.ResolvingPlayer || nextActive == state.Action
+	next := nextActivePlayer(state.Action.NextPlayer)
+	return next == state.ResolvingPlayer || next == state.Action || next == nil
 }
