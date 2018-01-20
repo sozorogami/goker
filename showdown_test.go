@@ -84,7 +84,7 @@ var _ = Describe("Showdown", func() {
 				mac.GetHand(loser3)
 			})
 			It("gives the whole pot to the winning player", func() {
-				results, oddChips := Showdown([]*Player{charlie, dennis, dee, mac}, []*Pot{onlyPot})
+				results, oddChips, _ := Showdown([]*Player{charlie, dennis, dee, mac}, []*Pot{onlyPot})
 				Expect(results[charlie]).To(Equal(1000))
 				Expect(results[dennis]).To(BeZero())
 				Expect(oddChips).To(BeEmpty())
@@ -103,7 +103,7 @@ var _ = Describe("Showdown", func() {
 					mac.GetHand(loser2)
 				})
 				It("divides the pot evenly between the winners", func() {
-					results, oddChips := Showdown([]*Player{charlie, dennis, dee, mac}, []*Pot{onlyPot})
+					results, oddChips, _ := Showdown([]*Player{charlie, dennis, dee, mac}, []*Pot{onlyPot})
 					Expect(results[charlie]).To(Equal(500))
 					Expect(results[dennis]).To(Equal(500))
 					Expect(results[dee]).To(BeZero())
@@ -129,7 +129,7 @@ var _ = Describe("Showdown", func() {
 					mac.GetHand(loser)
 				})
 				It("divides the pot evenly, with odd chips returned separately", func() {
-					results, oddChips := Showdown([]*Player{charlie, dennis, dee, mac}, []*Pot{onlyPot})
+					results, oddChips, _ := Showdown([]*Player{charlie, dennis, dee, mac}, []*Pot{onlyPot})
 					Expect(results[charlie]).To(Equal(333))
 					Expect(results[dennis]).To(Equal(333))
 					Expect(results[dee]).To(Equal(333))
@@ -161,7 +161,7 @@ var _ = Describe("Showdown", func() {
 				charlie.GetHand(loser)
 				dennis.GetHand(loser2)
 				mac.GetHand(loser3)
-				results, _ = Showdown([]*Player{dee, charlie, mac, dennis}, pots)
+				results, _, _ = Showdown([]*Player{dee, charlie, mac, dennis}, pots)
 			})
 			It("gives the side pot to the winnner ", func() {
 				Expect(results[dee]).To(Equal(sidePot.Value))
@@ -176,7 +176,7 @@ var _ = Describe("Showdown", func() {
 				charlie.GetHand(loser)
 				dennis.GetHand(winner)
 				mac.GetHand(loser2)
-				results, _ = Showdown([]*Player{dee, charlie, mac, dennis}, pots)
+				results, _, _ = Showdown([]*Player{dee, charlie, mac, dennis}, pots)
 			})
 			It("gives both pots to the winner", func() {
 				Expect(results[dennis]).To(Equal(sidePot.Value + mainPot.Value))
@@ -189,7 +189,7 @@ var _ = Describe("Showdown", func() {
 				charlie.GetHand(loser)
 				dennis.GetHand(otherRoyalStraightFlush)
 				mac.GetHand(loser2)
-				results, oddChips = Showdown([]*Player{dee, charlie, mac, dennis}, pots)
+				results, oddChips, _ = Showdown([]*Player{dee, charlie, mac, dennis}, pots)
 			})
 			It("gives the main pot to the person in the main pot and splits the side pot", func() {
 				Expect(results[dennis]).To(Equal(mainPot.Value + sidePot.Value/2))

@@ -15,6 +15,7 @@ type GameState struct {
 	BettingRound
 	GameRules
 	Complete bool
+	Events   []interface{}
 }
 
 type GameRules struct {
@@ -57,7 +58,7 @@ func NextHand(dealer *Player, players []*Player, rules GameRules, deck *Deck, ha
 	}
 
 	board := CardSet{}
-	gs := GameState{dealer, action, nil, players, []*Pot{}, deck, board, currentBet, 0, handNumber, Preflop, rules, false}
+	gs := GameState{dealer, action, nil, players, []*Pot{}, deck, board, currentBet, 0, handNumber, Preflop, rules, false, []interface{}{}}
 	return &gs
 }
 
@@ -107,7 +108,8 @@ func handleShowdown(state GameState, pots []*Pot) {
 		player.GetHand(cards.BestPossibleHand())
 	}
 
-	payouts, oddChipPots := Showdown(remainingPlayers, pots)
+	payouts, oddChipPots, events := Showdown(remainingPlayers, pots)
+	state.Events = append(state.Events, events...)
 
 	for player, winnings := range payouts {
 		player.Chips += winnings
@@ -168,6 +170,9 @@ func handleBetOrRaise(state GameState, increase int) (GameState, error) {
 
 func advanceRound(state GameState) GameState {
 	if lastPlayer := onlyRemainingPlayer(state.Players); lastPlayer != nil {
+		for i, pot := range state.Pots {
+			state.Events = append(state.Events, WinEvent{i, pot.Value, []*Player{lastPlayer}})
+		}
 		pots := combinePots(gatherBets(state.Players), state.Pots)
 		lastPlayer.Chips += totalPotValue(pots)
 		return advanceHand(state)
@@ -201,7 +206,9 @@ func advanceRound(state GameState) GameState {
 		cardsToDraw = 1
 	}
 
-	state.Board = append(state.Board, state.Deck.Draw(cardsToDraw)...)
+	newCards := state.Deck.Draw(cardsToDraw)
+	state.Events = append(state.Events, DrawEvent{newCards})
+	state.Board = append(state.Board, newCards...)
 
 	if np := nextActivePlayer(state.Dealer.NextPlayer); np != nil && nextActivePlayer(np.NextPlayer) != np {
 		state.Action = np

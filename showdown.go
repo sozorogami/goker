@@ -8,10 +8,11 @@ import (
 // and a slice of all pots in play. It returns the payout in chips for each
 // player when they reveal their hands and face off. It also returns a slice
 // of any odd chips which could not be divided evenly during a tie.
-func Showdown(players []*Player, pots []*Pot) (map[*Player]int, []*Pot) {
+func Showdown(players []*Player, pots []*Pot) (map[*Player]int, []*Pot, []interface{}) {
 	winnerTiers := WinnerTiers(players)
 	payouts := make(map[*Player]int)
 	oddChips := []*Pot{}
+	events := []interface{}{}
 
 	// For each winner tier, check each pot to see if any winners are entitled
 	// to it, and if so, divide it among those winners
@@ -39,6 +40,8 @@ func Showdown(players []*Player, pots []*Pot) (map[*Player]int, []*Pot) {
 				continue
 			}
 
+			events = append(events, WinEvent{i, pot.Value, potWinners})
+
 			for _, winner := range potWinners {
 				payouts[winner] += pot.Value / numOfWinners
 			}
@@ -60,7 +63,7 @@ func Showdown(players []*Player, pots []*Pot) (map[*Player]int, []*Pot) {
 		}
 	}
 
-	return payouts, oddChips
+	return payouts, oddChips, events
 }
 
 // WinnerTiers divides players into ranks ordered by winning poker hand,
