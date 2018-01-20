@@ -51,7 +51,9 @@ func NextHand(dealer *Player, players []*Player, rules GameRules, deck *Deck, ha
 	currentBet := rules.BigBlind
 
 	for _, player := range players {
-		player.HoleCards = deck.Draw(2)
+		if player.Status == Active {
+			player.HoleCards = deck.Draw(2)
+		}
 	}
 
 	board := CardSet{}
@@ -252,6 +254,7 @@ func refreshStatuses(players []*Player) {
 			player.Status = Eliminated
 		}
 		player.MuckHand()
+		player.HoleCards = CardSet{}
 	}
 }
 
