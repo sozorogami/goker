@@ -36,15 +36,15 @@ func NextHand(dealer *Player, players []*Player, rules GameRules, deck *Deck, ha
 	var bigBlind *Player
 	if len(players) == 2 {
 		dealer.Bet(rules.SmallBlind)
-		bigBlind = dealer.NextPlayer
+		bigBlind = nextActivePlayer(dealer.NextPlayer)
 		bigBlind.Bet(rules.BigBlind)
 		action = dealer
 	} else {
-		smallBlind := dealer.NextPlayer
+		smallBlind := nextActivePlayer(dealer.NextPlayer)
 		smallBlind.Bet(rules.SmallBlind)
-		bigBlind = smallBlind.NextPlayer
+		bigBlind = nextActivePlayer(smallBlind.NextPlayer)
 		bigBlind.Bet(rules.BigBlind)
-		action = bigBlind.NextPlayer
+		action = nextActivePlayer(bigBlind.NextPlayer)
 	}
 
 	// TODO: What if big blind can't match and goes all-in?
