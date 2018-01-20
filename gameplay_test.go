@@ -190,14 +190,18 @@ var _ = Describe("Gameplay", func() {
 			newState := advance(*state, "F,B450,C,F")
 			state = &newState
 		})
-		It("is the flop", func() {
-			Expect(state.BettingRound).To(Equal(Flop))
+		It("is the next hand", func() {
+			Expect(state.HandNumber).To(Equal(1))
 		})
-		It("puts the matcher all-in", func() {
-			Expect(dee.Status).To(Equal(AllIn))
-		})
+		// TODO: Rewrite this test using events
+		// It("puts the matcher all-in", func() {
+		// 	Expect(dee.Status).To(Equal(AllIn))
+		// })
 		It("only makes the better pay what was matched", func() {
-			Expect(charlie.Chips).To(Equal(800))
+			// Can't tell if Charlie will win or lose here, but he shouldn't win/lose
+			// more than was matched
+			Expect(charlie.Chips + charlie.CurrentBet).To(BeNumerically(">=", 800))
+			Expect(charlie.Chips + charlie.CurrentBet).To(BeNumerically("<=", 1250))
 		})
 	})
 

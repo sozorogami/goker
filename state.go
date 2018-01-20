@@ -34,7 +34,7 @@ func NextHand(dealer *Player, players []*Player, rules GameRules, deck *Deck, ha
 
 	var action *Player
 	var bigBlind *Player
-	if len(players) == 2 {
+	if len(nonFoldedPlayers(players)) == 2 {
 		dealer.Bet(rules.SmallBlind)
 		bigBlind = nextActivePlayer(dealer.NextPlayer)
 		bigBlind.Bet(rules.BigBlind)
@@ -203,7 +203,7 @@ func advanceRound(state GameState) GameState {
 
 	state.Board = append(state.Board, state.Deck.Draw(cardsToDraw)...)
 
-	if np := nextActivePlayer(state.Dealer.NextPlayer); np != nil {
+	if np := nextActivePlayer(state.Dealer.NextPlayer); np != nil && nextActivePlayer(np.NextPlayer) != np {
 		state.Action = np
 		state.ResolvingPlayer = np
 		return state
@@ -301,5 +301,10 @@ func shouldAdvanceRound(state GameState) bool {
 		return true
 	}
 	next := nextActivePlayer(state.Action.NextPlayer)
+	for between := state.Action.NextPlayer; between != next; between = between.NextPlayer {
+		if between == state.ResolvingPlayer {
+			return true
+		}
+	}
 	return next == state.ResolvingPlayer || next == state.Action || next == nil
 }
