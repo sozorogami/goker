@@ -214,9 +214,9 @@ func advanceRound(state GameState) GameState {
 		state.Action = np
 		state.ResolvingPlayer = np
 		return state
-	} else {
-		return advanceRound(state)
 	}
+
+	return advanceRound(state)
 }
 
 func Transition(state GameState, action Action) (GameState, error) {
@@ -230,14 +230,15 @@ func Transition(state GameState, action Action) (GameState, error) {
 
 	var err error
 	newState := state
+	newState.Events = []interface{}{}
 
 	switch action.ActionType {
 	case CheckCall:
-		newState = handleCheckOrCall(state)
+		newState = handleCheckOrCall(newState)
 	case BetRaise:
-		newState, err = handleBetOrRaise(state, action.Value)
+		newState, err = handleBetOrRaise(newState, action.Value)
 	case Fold:
-		newState = handleFold(state)
+		newState = handleFold(newState)
 	}
 
 	if err != nil {

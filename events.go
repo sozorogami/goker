@@ -1,7 +1,7 @@
 package goker
 
 type DrawEvent struct {
-	cards CardSet
+	Cards CardSet
 }
 
 type ShowEvent struct {
