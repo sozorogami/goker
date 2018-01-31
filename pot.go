@@ -5,6 +5,7 @@ package goker
 type Pot struct {
 	Value            int
 	PotentialWinners map[*Player]struct{}
+	Winners          []*Player
 }
 
 // NewPot constructs a pot with a given amount of chips and possible winners
@@ -13,7 +14,7 @@ func NewPot(value int, potentialWinners []*Player) *Pot {
 	for _, player := range potentialWinners {
 		potentialWinnersSet[player] = struct{}{}
 	}
-	pot := Pot{value, potentialWinnersSet}
+	pot := Pot{value, potentialWinnersSet, []*Player{}}
 	return &pot
 }
 

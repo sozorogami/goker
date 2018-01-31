@@ -1,102 +1,53 @@
 package goker
 
-import (
-	"sort"
-)
-
-// Showdown takes a slice of at least two players, all of whom must have a hand,
-// and a slice of all pots in play. It returns the payout in chips for each
-// player when they reveal their hands and face off. It also returns a slice
-// of any odd chips which could not be divided evenly during a tie.
-func Showdown(players []*Player, pots []*Pot) (map[*Player]int, []*Pot, []interface{}) {
-	winnerTiers := WinnerTiers(players)
-	payouts := make(map[*Player]int)
-	oddChips := []*Pot{}
+func Showdown(resolvingPlayer *Player, pots []*Pot) []interface{} {
+	p := resolvingPlayer
 	events := []interface{}{}
-
-	// For each winner tier, check each pot to see if any winners are entitled
-	// to it, and if so, divide it among those winners
-	for _, tier := range winnerTiers {
-		for i, pot := range pots {
-
-			// Skip pots that were already paid out
-			if pot == nil {
-				continue
-			}
-
-			potWinners := []*Player{}
-			for _, winner := range tier {
-				_, exists := pot.PotentialWinners[winner]
-				if exists {
-					potWinners = append(potWinners, winner)
+	for {
+		mucked := true
+		for _, pot := range pots {
+			if _, ok := pot.PotentialWinners[p]; ok {
+				if len(pot.Winners) == 0 || p.hand.IsEqual(pot.Winners[0].hand) {
+					pot.Winners = append(pot.Winners, p)
+					mucked = false
+				} else if !p.hand.IsLessThan(pot.Winners[0].hand) {
+					pot.Winners = []*Player{p}
+					mucked = false
 				}
 			}
-			numOfWinners := len(potWinners)
+		}
 
-			// If none of the winners on this tier can win the pot
-			// (because they're not entitled to a side pot, for example)
-			// it passes to a lower tier without being divided up
-			if numOfWinners == 0 {
-				continue
-			}
+		if mucked {
+			events = append(events, MuckEvent{p})
+		} else {
+			events = append(events, ShowEvent{p, p.hand, p.hand.Rank()})
+		}
 
-			events = append(events, WinEvent{i, pot.Value, potWinners})
-
-			for _, winner := range potWinners {
-				payouts[winner] += pot.Value / numOfWinners
-			}
-
-			if pot.Value%numOfWinners != 0 {
-				oddChipPot := NewPot(pot.Value%numOfWinners, potWinners)
-				oddChips = append(oddChips, oddChipPot)
-			}
-
-			// Nil out this pot so nobody can win it again!
-			pots[i] = nil
+		p = nextActivePlayer(p.NextPlayer)
+		if p == resolvingPlayer || p == nil {
+			break
 		}
 	}
-
-	// Sanity check
-	for i := range pots {
-		if pots[i] != nil {
-			panic("All pots should be paid out at end of showdown!")
-		}
-	}
-
-	return payouts, oddChips, events
+	return events
 }
 
-// WinnerTiers divides players into ranks ordered by winning poker hand,
-// with all players who tied for the best hand at index 0, those who
-// tied for 2nd best at index 1, and so on. There must be at least two
-// players, and all players included must have a hand assigned.
-func WinnerTiers(players []*Player) [][]*Player {
-	if len(players) < 2 {
-		panic("There must be at least two participants, or the winner is already decided.")
-	}
-
-	hands := make(HandGroup, len(players))
-	for i, player := range players {
-		if player.hand == nil {
-			panic("All players involved in a showdown must have a hand!")
+func PayOut(pots []*Pot) ([]*Pot, []interface{}) {
+	events := []interface{}{}
+	oddChipPots := []*Pot{}
+	for i, pot := range pots {
+		events = append(events, WinEvent{i, pot.Value, pot.Winners})
+		payout := pot.Value / len(pot.Winners)
+		for _, winner := range pot.Winners {
+			winner.Chips += payout
 		}
-		hands[i] = player.hand
-	}
-	sort.Sort(hands)
-
-	winners := [][]*Player{}
-	winningHandForTier := hands[len(hands)-1]
-	winnersForTier := []*Player{winningHandForTier.owner}
-	for i := len(hands) - 2; i >= 0; i-- {
-		hand := hands[i]
-		if winningHandForTier.IsEqual(hand) {
-			winnersForTier = append(winnersForTier, hand.owner)
-		} else {
-			winners = append(winners, winnersForTier)
-			winningHandForTier = hand
-			winnersForTier = []*Player{hand.owner}
+		if oddChips := pot.Value % len(pot.Winners); oddChips != 0 {
+			potential := make(map[*Player]struct{})
+			for _, player := range pot.Winners {
+				potential[player] = struct{}{}
+			}
+			oddChipPot := Pot{oddChips, potential, []*Player{}}
+			oddChipPots = append(oddChipPots, &oddChipPot)
 		}
 	}
-	winners = append(winners, winnersForTier)
-	return winners
+	return oddChipPots, events
 }

@@ -108,12 +108,12 @@ func handleShowdown(state GameState, pots []*Pot) {
 		player.GetHand(cards.BestPossibleHand())
 	}
 
-	payouts, oddChipPots, events := Showdown(remainingPlayers, pots)
+	events := Showdown(state.ResolvingPlayer, pots)
 	state.Events = append(state.Events, events...)
 
-	for player, winnings := range payouts {
-		player.Chips += winnings
-	}
+	oddChipPots, events := PayOut(pots)
+
+	state.Events = append(state.Events, events...)
 
 	for _, oddChipPot := range oddChipPots {
 		oddChipPayee := state.Dealer

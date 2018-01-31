@@ -4,9 +4,13 @@ type DrawEvent struct {
 	Cards CardSet
 }
 
+type MuckEvent struct {
+	*Player
+}
+
 type ShowEvent struct {
-	Player
-	Hand
+	*Player
+	*Hand
 	HandRank
 }
 
