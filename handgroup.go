@@ -12,17 +12,5 @@ func (hg HandGroup) Swap(i, j int) {
 }
 
 func (hg HandGroup) Less(i, j int) bool {
-	for idx := range hg[i].Rank().Value() {
-		// Compare the value of each hand rank, with decreasing
-		// significance, until one is higher
-		leftVal := hg[i].Rank().Value()[idx]
-		rightVal := hg[j].Rank().Value()[idx]
-		if leftVal < rightVal {
-			return true
-		}
-		if leftVal > rightVal {
-			return false
-		}
-	}
-	return false
+	return hg[i].IsLessThan(hg[j])
 }

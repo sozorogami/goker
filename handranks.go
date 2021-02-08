@@ -4,9 +4,36 @@ import (
 	"sort"
 )
 
+// HandRank is implemented by types whose comparative value
+// is determined by several sub-values, e.g. the ranks of
+// cards that make up a poker hand
 type HandRank interface {
 	Value() []int
 	Name() string
+}
+
+// IsLessThan returns true if the receiver is of lower value
+// by the rules of poker than the hand provided
+func (h *Hand) IsLessThan(h2 *Hand) bool {
+	for idx := range h.Rank().Value() {
+		// Compare the value of each rank determiner, with decreasing
+		// significance, until one is higher
+		leftVal := h.Rank().Value()[idx]
+		rightVal := h2.Rank().Value()[idx]
+		if leftVal < rightVal {
+			return true
+		}
+		if leftVal > rightVal {
+			return false
+		}
+	}
+	return false
+}
+
+// IsEqual returns true if the receiver is of equal value
+// by the rules of poker to the hand provided
+func (h *Hand) IsEqual(h2 *Hand) bool {
+	return !h.IsLessThan(h2) && !h2.IsLessThan(h)
 }
 
 // Royal Straight Flush
